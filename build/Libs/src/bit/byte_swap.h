@@ -7,7 +7,7 @@
 namespace rb::bit
 {
 	/**
-	 * \brief The implementation of the byte-swap algorithm.
+	 * \brief Implementation of the byte-swap algorithm.
 	 */
 	template<typename T, size_t... N>
 	[[nodiscard]] constexpr T _bswap_impl(T value, std::index_sequence<N...>) noexcept
@@ -15,8 +15,8 @@ namespace rb::bit
 		/*
 		 * This function uses fold expressions to enable compile-time evaluation.
 		 * The template parameter pack N is an index sequence from 0 up to the number of bytes in type T.
-		 * First we extract a single byte by shifting it to the rightmost place (the place of the least-significant byte) 
-		 * and bitwise-and it with 0xFF to cut off any remaining bits on the left. Then we shift the byte to the swapped place. 
+		 * Extract a single byte by shifting it to the rightmost place (the place of the least-significant byte) 
+		 * and bitwise-and it with 0xFF to cut off any remaining bits on the left. Then shift the byte to the swapped place. 
 		 * Repeat this for every byte and bitwise-or the results together.
 		 */
 
@@ -26,8 +26,8 @@ namespace rb::bit
 	/**
 	 * \brief Swaps the bytes of an integer.
 	 * 
-	 * \param value The integer to swap the bytes of.
-	 * \return The integer with swapped bytes.
+	 * \param value Integer to swap the bytes of.
+	 * \return Integer with swapped bytes.
 	 */
 	template<typename T>
 	[[nodiscard]] constexpr T bswap(T value) noexcept
