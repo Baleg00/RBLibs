@@ -10,9 +10,11 @@ namespace rb::bit
 	 * \brief Implementation for big-endian write function.
 	 */
 	template<typename T, size_t... N>
-	void _write_be_impl(void* dest, T value, std::index_sequence<N...>) noexcept
+	constexpr void _write_be_impl(void* dest, T value, std::index_sequence<N...>) noexcept
 	{
 		/*
+		 * This function uses fold expressions to enable compile-time evaluation.
+		 * The template parameter pack N is an index sequence from 0 up to the number of bytes in type T.
 		 * Extract bytes from value in big-endian order.
 		 * Reinterpret dest as a byte array and write values to the appropriate index.
 		 */
@@ -24,7 +26,7 @@ namespace rb::bit
 	 * \brief Implementation for little-endian write function.
 	 */
 	template<typename T, size_t... N>
-	void _write_le_impl(void* dest, T value, std::index_sequence<N...>) noexcept
+	constexpr void _write_le_impl(void* dest, T value, std::index_sequence<N...>) noexcept
 	{
 		((reinterpret_cast<uint8_t*>(dest)[N] = ((value >> (N * 8)) & 0xFF)), ...);
 	}
@@ -33,10 +35,10 @@ namespace rb::bit
 	 * \brief Writes integer into memory in big-endian byte order.
 	 *
 	 * \param dest Memory address to write to.
-	 * \param value The value to write to memory.
+	 * \param value Value to write to memory.
 	 */
 	template<typename T>
-	void write_be(void* dest, T value) noexcept
+	constexpr void write_be(void* dest, T value) noexcept
 	{
 		static_assert(std::is_integral_v<T>, "value must be an integral");
 
@@ -53,10 +55,10 @@ namespace rb::bit
 	 * \brief Writes integer into memory in little-endian byte order.
 	 *
 	 * \param dest Memory address to write to.
-	 * \param value The value to write to memory.
+	 * \param value Value to write to memory.
 	 */
 	template<typename T>
-	void write_le(void* dest, T value) noexcept
+	constexpr void write_le(void* dest, T value) noexcept
 	{
 		static_assert(std::is_integral_v<T>, "value must be an integral");
 
@@ -67,7 +69,7 @@ namespace rb::bit
 	 * \brief Implementation for big-endian read function.
 	 */
 	template<typename T, size_t... N>
-	[[nodiscard]] T _read_be_impl(const void* src, std::index_sequence<N...>) noexcept
+	[[nodiscard]] constexpr T _read_be_impl(const void* src, std::index_sequence<N...>) noexcept
 	{
 		/*
 		 * Reinterpret src as a byte array. 
@@ -81,7 +83,7 @@ namespace rb::bit
 	 * \brief Implementation for little-endian read function.
 	 */
 	template<typename T, size_t... N>
-	[[nodiscard]] T _read_le_impl(const void* src, std::index_sequence<N...>) noexcept
+	[[nodiscard]] constexpr T _read_le_impl(const void* src, std::index_sequence<N...>) noexcept
 	{
 		return ((static_cast<T>(reinterpret_cast<const uint8_t*>(src)[N]) << (N * 8)) | ...);
 	}
@@ -90,10 +92,10 @@ namespace rb::bit
 	 * \brief Reads big-endian integer from memory.
 	 *
 	 * \param src Memory address to read from.
-	 * \return The value read from memory.
+	 * \return Value read from memory.
 	 */
 	template<typename T>
-	[[nodiscard]] T read_be(const void* src) noexcept
+	[[nodiscard]] constexpr T read_be(const void* src) noexcept
 	{
 		static_assert(std::is_integral_v<T>, "return type must be integral");
 
@@ -110,10 +112,10 @@ namespace rb::bit
 	 * \brief Reads little-endian integer from memory.
 	 *
 	 * \param src Memory address to read from.
-	 * \return The value read from memory.
+	 * \return Value read from memory.
 	 */
 	template<typename T>
-	[[nodiscard]] T read_le(const void* src) noexcept
+	[[nodiscard]] constexpr T read_le(const void* src) noexcept
 	{
 		static_assert(std::is_integral_v<T>, "return type must be integral");
 
