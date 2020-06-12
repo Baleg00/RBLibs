@@ -7,37 +7,37 @@
 namespace rb::bit
 {
 	/**
-	 * \brief The implementation for the big-endian byte-concatenation algorithm.
+	 * \brief Implementation for the big-endian byte-concatenation algorithm.
 	 */
 	template<typename T, typename U, size_t... N>
-	[[nodiscard]] T _bconcat_be_impl(const U* values, std::index_sequence<N...>) noexcept
+	[[nodiscard]] constexpr T _bconcat_be_impl(const U* values, std::index_sequence<N...>) noexcept
 	{
 		/*
 		 * The template parameter pack N is an index sequence from 0 up to the number of times U fits into T.
 		 * We cast the current value to T and shift it left to the appropriate position.
-		 * Repeat this for every value and bitwise-or them together.
+		 * Repeat this for every value and bitwise-or them together using fold expressions.
 		 */
 
 		return ((static_cast<T>(values[N]) << ((sizeof...(N) - 1 - N) * 8)) | ...);
 	}
 
 	/**
-	 * \brief The implementation for the little-endian byte-concatenation algorithm.
+	 * \brief Implementation for the little-endian byte-concatenation algorithm.
 	 */
-	template<typename U, typename T, size_t... N>
-	[[nodiscard]] U _bconcat_le_impl(const T* values, std::index_sequence<N...>) noexcept
+	template<typename T, typename U, size_t... N>
+	[[nodiscard]] constexpr T _bconcat_le_impl(const U* values, std::index_sequence<N...>) noexcept
 	{
-		return ((static_cast<U>(values[N]) << (N * 8)) | ...);
+		return ((static_cast<T>(values[N]) << (N * 8)) | ...);
 	}
 
 	/**
 	 * \brief Concatenates integrals in big-endian order.
 	 * 
-	 * \param values The memory address to read from.
+	 * \param values Memory address to read from.
 	 * \return Concatenated big-endian integer.
 	 */
 	template<typename T, typename U>
-	[[nodiscard]] T bconcat_be(const U* values) noexcept
+	[[nodiscard]] constexpr T bconcat_be(const U* values) noexcept
 	{
 		static_assert(std::is_integral_v<T>, "return type must be integral");
 		static_assert(std::is_integral_v<U>, "value type must be integral");
@@ -54,11 +54,11 @@ namespace rb::bit
 	/**
 	 * \brief Concatenates integrals in little-endian order.
 	 *
-	 * \param values The memory address to read from.
+	 * \param values Memory address to read from.
 	 * \return Concatenated little-endian integer.
 	 */
 	template<typename T, typename U>
-	[[nodiscard]] T bconcat_le(const U* values) noexcept
+	[[nodiscard]] constexpr T bconcat_le(const U* values) noexcept
 	{
 		static_assert(std::is_integral_v<T>, "return type must be integral");
 		static_assert(std::is_integral_v<U>, "value type must be integral");
