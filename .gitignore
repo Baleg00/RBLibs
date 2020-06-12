@@ -1,0 +1,15 @@
+# BINARIES
+bin/
+*.exe
+*.lib
+*.dll
+
+# OBJECT FILES
+obj/
+
+# VISUAL STUDIO
+.vs/
+*.sln
+*.vcxproj
+*.user
+*.filters
