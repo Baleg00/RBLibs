@@ -6,27 +6,39 @@
 
 namespace rb::bit
 {
-	template<typename T, typename std::enable_if_t<std::is_integral_v<T>, int> = 0>
-	[[nodiscard]] constexpr T rotl(const T& x, uint32_t s) noexcept
+	/**
+	 * \brief Bitwise left-rotate operation.
+	 * 
+	 * \param value Value to be rotated.
+	 * \param r Rotation amount.
+	 * \return Rotated value.
+	 */
+	template<typename T>
+	[[nodiscard]] constexpr T rotl(T value, uint32_t r) noexcept
 	{
+		static_assert(std::is_integral_v<T>, "value must be an integral");
+
 		constexpr uint32_t N = std::numeric_limits<T>::digits;
-		const uint32_t r = s % N;
+		r %= N;
 
-		if (r == 0)
-			return x;
-
-		return (x << r) | (x >> (N - r));
+		return (value << r) | (value >> (N - r));
 	}
 
-	template<typename T, typename std::enable_if_t<std::is_integral_v<T>, int> = 0>
-	[[nodiscard]] constexpr T rotr(const T& x, uint32_t s) noexcept
+	/**
+	 * \brief Bitwise right-rotate operation.
+	 *
+	 * \param value Value to be rotated.
+	 * \param r Rotation amount.
+	 * \return Rotated value.
+	 */
+	template<typename T>
+	[[nodiscard]] constexpr T rotr(T value, uint32_t r) noexcept
 	{
+		static_assert(std::is_integral_v<T>, "value must be an integral");
+
 		constexpr uint32_t N = std::numeric_limits<T>::digits;
-		const uint32_t r = s % N;
+		r %= N;
 
-		if (r == 0)
-			return x;
-
-		return (x >> r) | (x << (N - r));
+		return (value >> r) | (value << (N - r));
 	}
 }
