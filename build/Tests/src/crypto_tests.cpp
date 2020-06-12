@@ -1,0 +1,226 @@
+#include <CppUnitTest.h>
+
+#include "crypto/md5.h"
+#include "crypto/ripemd.h"
+#include "crypto/sha1.h"
+#include "crypto/sha2.h"
+#include "crypto/keccak.h"
+#include "crypto/hmac.h"
+#include "crypto/bases.h"
+
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+
+using namespace rb::crypto;
+
+namespace rb::tests
+{
+	TEST_CLASS(CRYPTO)
+	{
+	public:
+
+		TEST_METHOD(MD5)
+		{
+			md5 hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "e4d909c290d0fb1ca068ffaddf22cbd0");
+		}
+
+		TEST_METHOD(RIPEMD160)
+		{
+			ripemd160 hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "fc850169b1f2ce72e3f8aa0aeb5ca87d6f8519c6");
+		}
+
+		TEST_METHOD(SHA1)
+		{
+			sha1 hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "408d94384216f890ff7a0c3528e8bed1e0b01621");
+		}
+
+		TEST_METHOD(SHA2_224)
+		{
+			sha2_224 hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "619cba8e8e05826e9b8c519c0a5c68f4fb653e8a3d8aa04bb2c8cd4c");
+		}
+
+		TEST_METHOD(SHA2_256)
+		{
+			sha2_256 hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "ef537f25c895bfa782526529a9b63d97aa631564d5d789c2b765448c8635fb6c");
+		}
+
+		TEST_METHOD(SHA2_384)
+		{
+			sha2_384 hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "ed892481d8272ca6df370bf706e4d7bc1b5739fa2177aae6c50e946678718fc67a7af2819a021c2fc34e91bdb63409d7");
+		}
+
+		TEST_METHOD(SHA2_512)
+		{
+			sha2_512 hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "91ea1245f20d46ae9a037a989f54f1f790f0a47607eeb8a14d12890cea77a1bbc6c7ed9cf205e67b7f2b8fd4c7dfd3a7a8617e45f3c463d481c7e586c39ac1ed");
+		}
+
+		TEST_METHOD(SHA3_224)
+		{
+			sha3_224 hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "2d0708903833afabdd232a20201176e8b58c5be8a6fe74265ac54db0");
+		}
+
+		TEST_METHOD(SHA3_256)
+		{
+			sha3_256 hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "a80f839cd4f83f6c3dafc87feae470045e4eb0d366397d5c6ce34ba1739f734d");
+		}
+
+		TEST_METHOD(SHA3_384)
+		{
+			sha3_384 hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "1a34d81695b622df178bc74df7124fe12fac0f64ba5250b78b99c1273d4b080168e10652894ecad5f1f4d5b965437fb9");
+		}
+
+		TEST_METHOD(SHA3_512)
+		{
+			sha3_512 hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "18f4f4bd419603f95538837003d9d254c26c23765565162247483f65c50303597bc9ce4d289f21d1c2f1f458828e33dc442100331b35e7eb031b5d38ba6460f8");
+		}
+
+		TEST_METHOD(SHAKE128_256)
+		{
+			shake128<256> hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "634069e6b13c3af64c57f05babf5911b6acf1d309b9624fc92b0c0bd9f27f538");
+		}
+
+		TEST_METHOD(SHAKE256_512)
+		{
+			shake256<512> hash;
+			hash.write("The quick brown fox jumps over the lazy dog.");
+			
+			Assert::IsTrue(hash.hex_digest() == "bd225bfc8b255f3036f0c8866010ed0053b5163a3cae111e723c0c8e704eca4e5d0f1e2a2fa18c8a219de6b88d5917ff5dd75b5fb345e7409a3b333b508a65fb");
+		}
+
+		TEST_METHOD(HMAC_SHA2_256)
+		{
+			hmac<sha2_256> hash;
+
+			hash.set_key("key");
+			hash.write("The quick brown fox jumps over the lazy dog.");
+
+			Assert::IsTrue(hash.hex_digest() == "e98139c39d76eb80d8db982552b44b251b94f312987f91ee72d12ef673caa813");
+		}
+
+		TEST_METHOD(BASE16_TO)
+		{
+			Assert::IsTrue(base16::encode("foobar", 6) == "666F6F626172");
+		}
+
+		TEST_METHOD(BASE16_FROM)
+		{
+			char result[7]{ '\0' };
+			base16::decode("666F6F626172", result, 7);
+			
+			Assert::IsTrue(std::memcmp(result, "foobar", 7) == 0);
+		}
+
+		TEST_METHOD(BASE16_LITERAL)
+		{
+			Assert::IsTrue("foobar"_base16 == "666F6F626172");
+		}
+
+		TEST_METHOD(BASE32_TO)
+		{
+			Assert::IsTrue(base32::encode("foobar", 6) == "MZXW6YTBOI======");
+		}
+
+		TEST_METHOD(BASE32_FROM)
+		{
+			char result[7]{ '\0' };
+			base32::decode("MZXW6YTBOI======", result, 7);
+
+			Assert::IsTrue(std::memcmp(result, "foobar", 7) == 0);
+		}
+
+		TEST_METHOD(BASE32_LITERAL)
+		{
+			Assert::IsTrue("foobar"_base32 == "MZXW6YTBOI======");
+		}
+
+		TEST_METHOD(BASE32HEX_TO)
+		{
+			Assert::IsTrue(base32hex::encode("foobar", 6) == "CPNMUOJ1E8======");
+		}
+
+		TEST_METHOD(BASE32HEX_FROM)
+		{
+			char result[7]{ '\0' };
+			base32hex::decode("CPNMUOJ1E8======", result, 7);
+
+			Assert::IsTrue(std::memcmp(result, "foobar", 7) == 0);
+		}
+
+		TEST_METHOD(BASE32HEX_LITERAL)
+		{
+			Assert::IsTrue("foobar"_base32hex == "CPNMUOJ1E8======");
+		}
+
+		TEST_METHOD(BASE64_TO)
+		{
+			Assert::IsTrue(base64::encode("foobar", 6) == "Zm9vYmFy");
+		}
+
+		TEST_METHOD(BASE64_FROM)
+		{
+			char result[7]{ '\0' };
+			base64::decode("Zm9vYmFy", result, 7);
+
+			Assert::IsTrue(std::memcmp(result, "foobar", 7) == 0);
+		}
+
+		TEST_METHOD(BASE64_LITERAL)
+		{
+			Assert::IsTrue("foobar"_base64 == "Zm9vYmFy");
+		}
+
+		TEST_METHOD(BASE64URL_TO)
+		{
+			Assert::IsTrue(base64::encode("foobar", 6) == "Zm9vYmFy");
+		}
+
+		TEST_METHOD(BASE64URL_FROM)
+		{
+			char result[7]{ '\0' };
+			base64::decode("Zm9vYmFy", result, 7);
+
+			Assert::IsTrue(std::memcmp(result, "foobar", 7) == 0);
+		}
+
+		TEST_METHOD(BASE64URL_LITERAL)
+		{
+			Assert::IsTrue("foobar"_base64url == "Zm9vYmFy");
+		}
+
+	};
+}
