@@ -110,6 +110,20 @@ namespace rb::tests
 			Assert::IsTrue(v == r);
 		}
 
+		TEST_METHOD(LSHIFT_128)
+		{
+			int128 v = "daf9207716e646a7ea3e194de83e7ed8"_i128 << 25;
+			int128 r = "ee2dcc8d4fd47c329bd07cfdb0000000"_i128;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(RSHIFT_128)
+		{
+			int128 v = "119a190df0acd55f2c8326ca77388bcb"_i128 >> 84;
+			int128 r = "119a190df0a"_i128;
+			Assert::IsTrue(v == r);
+		}
+
 		TEST_METHOD(NOT_128)
 		{
 			int128 v = ~"9e7039ad4f0c8a2e47a8c7783a577575"_i128;
@@ -135,9 +149,17 @@ namespace rb::tests
 
 		TEST_METHOD(LESS_128)
 		{
-			int128 v0 = "d4087a040e35fbf8a67235f140cc8526"_i128;
-			int128 v1 = "e08a9f770f33f45ebe236ae7aad0c41c"_i128;
+			int128 v0 = "44087a040e35fbf8a67235f140cc8526"_i128;
+			int128 v1 = "508a9f770f33f45ebe236ae7aad0c41c"_i128;
 			Assert::IsTrue(v0 < v1);
+
+			int128 v2 = "44087a040e35fbf8a67235f140cc8526"_i128;
+			int128 v3 = -"508a9f770f33f45ebe236ae7aad0c41c"_i128;
+			Assert::IsFalse(v2 < v3);
+
+			int128 v4 = -"44087a040e35fbf8a67235f140cc8526"_i128;
+			int128 v5 = -"508a9f770f33f45ebe236ae7aad0c41c"_i128;
+			Assert::IsFalse(v4 < v5);
 		}
 
 		TEST_METHOD(LESS_EQ_128)
@@ -153,6 +175,14 @@ namespace rb::tests
 			int128 v0 = "42328599344565660bc5073119758e67"_i128;
 			int128 v1 = "39806edab60194a5115360c9dda4d9e7"_i128;
 			Assert::IsTrue(v0 > v1);
+
+			int128 v2 = "42328599344565660bc5073119758e67"_i128;
+			int128 v3 = -"39806edab60194a5115360c9dda4d9e7"_i128;
+			Assert::IsTrue(v2 > v3);
+
+			int128 v4 = -"42328599344565660bc5073119758e67"_i128;
+			int128 v5 = -"39806edab60194a5115360c9dda4d9e7"_i128;
+			Assert::IsFalse(v4 > v5);
 		}
 
 		TEST_METHOD(GREATER_EQ_128)

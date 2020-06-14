@@ -82,6 +82,20 @@ namespace rb::tests
 			Assert::IsTrue(v == r);
 		}
 
+		TEST_METHOD(LSHIFT_128)
+		{
+			uint128 v = "15f758ebd9b0796c64895dd46b479e97"_u128 << 40;
+			uint128 r = "b0796c64895dd46b479e970000000000"_u128;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(RSHIFT_128)
+		{
+			uint128 v = "6c39f64c8f6b1028fedc77cd584b49c9"_u128 >> 33;
+			uint128 r = "361cfb2647b588147f6e3be6"_u128;
+			Assert::IsTrue(v == r);
+		}
+
 		TEST_METHOD(NOT_128)
 		{
 			uint128 v = ~"9e7039ad4f0c8a2e47a8c7783a577575"_u128;
