@@ -49,12 +49,6 @@ namespace rb::math
 		{
 		}
 
-		bigint(std::initializer_list<uint8_t> il) noexcept
-			: bigint()
-		{
-			std::copy(il.begin(), il.end(), m_data.data());
-		}
-
 		explicit bigint(const std::string& str)
 			: bigint()
 		{
@@ -80,7 +74,7 @@ namespace rb::math
 		}
 
 		template<typename T, typename std::enable_if_t<std::is_integral_v<T>, int> = 0>
-		constexpr bigint(T value) noexcept
+		bigint(T value) noexcept
 			: bigint()
 		{
 			std::make_unsigned_t<T> u_value = static_cast<std::make_unsigned_t<T>>(value);
@@ -99,7 +93,7 @@ namespace rb::math
 		explicit bigint(const bigint<_B>& other) noexcept
 			: bigint()
 		{
-			if constexpr (bigint<_B>::BYTE_SIZE < BYTE_SIZE && other < 0)
+			if (bigint<_B>::BYTE_SIZE < BYTE_SIZE && other < 0)
 			{
 				bigint<_B> neg_other = -other;
 
@@ -115,7 +109,7 @@ namespace rb::math
 
 	private:
 		template<size_t... I>
-		[[nodiscard]] inline my_type bitwise_and_impl(const my_type& rhs, std::index_sequence<I...>) const noexcept
+		[[nodiscard]] constexpr my_type bitwise_and_impl(const my_type& rhs, std::index_sequence<I...>) const noexcept
 		{
 			my_type result = *this;
 			((result.m_data[I] &= rhs.m_data[I]), ...);
@@ -123,7 +117,7 @@ namespace rb::math
 		}
 
 		template<size_t... I>
-		[[nodiscard]] inline my_type bitwise_or_impl(const my_type& rhs, std::index_sequence<I...>) const noexcept
+		[[nodiscard]] constexpr my_type bitwise_or_impl(const my_type& rhs, std::index_sequence<I...>) const noexcept
 		{
 			my_type result = *this;
 			((result.m_data[I] |= rhs.m_data[I]), ...);
@@ -131,7 +125,7 @@ namespace rb::math
 		}
 
 		template<size_t... I>
-		[[nodiscard]] inline my_type bitwise_xor_impl(const my_type& rhs, std::index_sequence<I...>) const noexcept
+		[[nodiscard]] constexpr my_type bitwise_xor_impl(const my_type& rhs, std::index_sequence<I...>) const noexcept
 		{
 			my_type result = *this;
 			((result.m_data[I] ^= rhs.m_data[I]), ...);
@@ -139,11 +133,39 @@ namespace rb::math
 		}
 
 		template<size_t... I>
-		[[nodiscard]] inline my_type bitwise_not_impl(std::index_sequence<I...>) const noexcept
+		[[nodiscard]] constexpr my_type bitwise_lshift_impl(uint32_t rhs, std::index_sequence<I...>) const noexcept
+		{
+			const uint32_t byte_pos = rhs / 8;
+			const uint32_t bit_offs = rhs % 8;
+
+			my_type result;
+			((result.m_data[I] |= I >= byte_pos ? ((m_data[I - byte_pos] << bit_offs) | (I - byte_pos > 0 ? (m_data[I - byte_pos - 1] >> (8 - bit_offs)) : 0)) : 0), ...);
+			return result;
+		}
+
+		template<size_t... I>
+		[[nodiscard]] constexpr my_type bitwise_rshift_impl(uint32_t rhs, std::index_sequence<I...>) const noexcept
+		{
+			const uint32_t byte_pos = rhs / 8;
+			const uint32_t bit_offs = rhs % 8;
+
+			my_type result;
+			((result.m_data[I] |= I < BYTE_SIZE - byte_pos ? ((m_data[I + byte_pos] >> bit_offs) | (byte_pos + I + 1 < BYTE_SIZE ? (m_data[byte_pos + I + 1] << (8 - bit_offs)) : 0)) : 0), ...);
+			return result;
+		}
+
+		template<size_t... I>
+		[[nodiscard]] constexpr my_type bitwise_not_impl(std::index_sequence<I...>) const noexcept
 		{
 			my_type result;
 			((result.m_data[I] = ~m_data[I]), ...);
 			return result;
+		}
+
+		template<size_t... I>
+		[[nodiscard]] constexpr bool is_zero_impl(std::index_sequence<I...>) const noexcept
+		{
+			return ((m_data[I] == 0) && ...);
 		}
 
 		[[nodiscard]] std::pair<my_type, my_type> division_impl(const my_type& rhs) const
@@ -195,14 +217,14 @@ namespace rb::math
 		}
 
 	public:
-		[[nodiscard]] int sign() const noexcept
+		[[nodiscard]] constexpr int sign() const noexcept
 		{
 			return (m_data[BYTE_SIZE - 1] & 0x80) == 0 ? 1 : -1;
 		}
 
-		[[nodiscard]] bool is_zero() const noexcept
+		[[nodiscard]] constexpr bool is_zero() const noexcept
 		{
-			return std::all_of(m_data.begin(), m_data.end(), [](uint8_t v) { return v == 0; });
+			return is_zero_impl(std::make_index_sequence<BYTE_SIZE>{});
 		}
 
 		[[nodiscard]] size_t bits() const noexcept
@@ -274,42 +296,31 @@ namespace rb::math
 		}
 
 	public:
-		[[nodiscard]] uint8_t* data() noexcept
+		[[nodiscard]] constexpr uint8_t* data() noexcept
 		{
 			return m_data.data();
 		}
 
-		[[nodiscard]] const uint8_t* data() const noexcept
+		[[nodiscard]] constexpr const uint8_t* data() const noexcept
 		{
 			return m_data.data();
 		}
 
 	public:
-		my_type& operator=(const my_type& rhs) noexcept
+		constexpr my_type& operator=(const my_type& rhs) noexcept
 		{
 			m_data = rhs.m_data;
 			return *this;
 		}
 
-		my_type& operator=(my_type&& rhs) noexcept
+		constexpr my_type& operator=(my_type&& rhs) noexcept
 		{
 			m_data = std::move(rhs.m_data);
 			return *this;
 		}
 
-		my_type& operator=(uint64_t rhs) noexcept
-		{
-			*this = my_type(rhs);
-			return *this;
-		}
-
-		my_type& operator=(std::initializer_list<uint8_t> rhs) noexcept
-		{
-			*this = my_type(rhs);
-			return *this;
-		}
-
-		my_type& operator=(const std::string& rhs) noexcept
+		template<typename T, typename std::enable_if_t<std::is_integral_v<T>, int> = 0>
+		my_type& operator=(T rhs) noexcept
 		{
 			*this = my_type(rhs);
 			return *this;
@@ -454,127 +465,111 @@ namespace rb::math
 		}
 
 	public:
-		[[nodiscard]] my_type operator&(const my_type& rhs) const noexcept
+		[[nodiscard]] constexpr my_type operator&(const my_type& rhs) const noexcept
 		{
 			return bitwise_and_impl(rhs, std::make_index_sequence<BYTE_SIZE>{});
 		}
 
-		[[nodiscard]] my_type operator|(const my_type& rhs) const noexcept
+		[[nodiscard]] constexpr my_type operator|(const my_type& rhs) const noexcept
 		{
 			return bitwise_or_impl(rhs, std::make_index_sequence<BYTE_SIZE>{});
 		}
 
-		[[nodiscard]] my_type operator^(const my_type& rhs) const noexcept
+		[[nodiscard]] constexpr my_type operator^(const my_type& rhs) const noexcept
 		{
 			return bitwise_xor_impl(rhs, std::make_index_sequence<BYTE_SIZE>{});
 		}
 
-		[[nodiscard]] my_type operator<<(uint32_t rhs) const noexcept
+		[[nodiscard]] constexpr my_type operator<<(uint32_t rhs) const noexcept
 		{
 			if (rhs == 0)
 				return *this;
 
 			if (rhs >= BIT_SIZE)
-				return my_type();
+				return 0;
 
-			my_type result;
-
-			const uint32_t byte_pos = rhs / 8;
-			const uint32_t bit_offs = rhs % 8;
-
-			for (uint32_t i = byte_pos; i < BYTE_SIZE; i++)
-				result.m_data[i] |= (m_data[i - byte_pos] << bit_offs) | (i - byte_pos > 0 ? (m_data[i - byte_pos - 1] >> (8 - bit_offs)) : 0);
-
-			return result;
+			return bitwise_lshift_impl(rhs, std::make_index_sequence<BYTE_SIZE>{});
 		}
 
-		[[nodiscard]] my_type operator<<(const my_type& rhs) const noexcept
+		[[nodiscard]] constexpr my_type operator<<(const my_type& rhs) const noexcept
 		{
 			if (rhs.is_zero())
 				return *this;
 
 			if (rhs.m_data[0] >= BIT_SIZE)
-				return my_type();
+				return 0;
 
 			uint32_t shift = rb::bit::read_le<uint32_t>(rhs.m_data.data());
 
 			return *this << shift;
 		}
 
-		[[nodiscard]] my_type operator>>(uint32_t rhs) const noexcept
+		[[nodiscard]] constexpr my_type operator>>(uint32_t rhs) const noexcept
 		{
 			if (rhs == 0)
 				return *this;
 
 			if (rhs >= BIT_SIZE)
-				return my_type();
+				return 0;
 
-			my_type result;
-
-			const uint32_t byte_pos = rhs / 8;
-			const uint32_t bit_offs = rhs % 8;
-
-			for (uint32_t i = 0; i < BYTE_SIZE - byte_pos; i++)
-				result.m_data[i] |= (m_data[byte_pos + i] >> bit_offs) | (byte_pos + i + 1 < BYTE_SIZE ? (m_data[byte_pos + i + 1] << (8 - bit_offs)) : 0);
-
-			return result;
+			return bitwise_rshift_impl(rhs, std::make_index_sequence<BYTE_SIZE>{});
 		}
 
-		[[nodiscard]] my_type operator>>(const my_type& rhs) const noexcept
+		[[nodiscard]] constexpr my_type operator>>(const my_type& rhs) const noexcept
 		{
 			if (rhs.is_zero())
 				return *this;
 
 			if (rhs.m_data[0] >= BIT_SIZE)
-				return my_type();
+				return 0;
 
 			uint32_t shift = rb::bit::read_le<uint32_t>(rhs.m_data.data());
 
 			return *this >> shift;
 		}
 
-		[[nodiscard]] my_type operator~() const noexcept
+		[[nodiscard]] constexpr my_type operator~() const noexcept
 		{
 			return bitwise_not_impl(std::make_index_sequence<BYTE_SIZE>{});
 		}
 
-		my_type& operator&=(const my_type& rhs) noexcept
+		constexpr my_type& operator&=(const my_type& rhs) noexcept
 		{
 			*this = *this & rhs;
 			return *this;
 		}
 
-		my_type& operator|=(const my_type& rhs) noexcept
+		constexpr my_type& operator|=(const my_type& rhs) noexcept
 		{
 			*this = *this | rhs;
 			return *this;
 		}
 
-		my_type& operator^=(const my_type& rhs) noexcept
+		constexpr my_type& operator^=(const my_type& rhs) noexcept
 		{
 			*this = *this ^ rhs;
 			return *this;
 		}
 
-		my_type& operator>>=(uint32_t rhs) noexcept
+		constexpr my_type& operator>>=(uint32_t rhs) noexcept
 		{
 			*this = *this >> rhs;
 			return *this;
 		}
 
-		my_type& operator>>=(const my_type& rhs) noexcept
+		constexpr my_type& operator>>=(const my_type& rhs) noexcept
 		{
 			*this = *this >> rhs;
 			return *this;
 		}
 
-		my_type& operator<<=(uint32_t rhs) noexcept
+		constexpr my_type& operator<<=(uint32_t rhs) noexcept
 		{
 			*this = *this << rhs;
 			return *this;
 		}
 
-		my_type& operator<<=(const my_type& rhs) noexcept
+		constexpr my_type& operator<<=(const my_type& rhs) noexcept
 		{
 			*this = *this << rhs;
 			return *this;
@@ -657,6 +652,8 @@ namespace rb::math
 
 			if (it == v.m_data.rend())
 				os << "0";
+			else
+				os << std::hex << static_cast<uint32_t>(*(it++));
 
 			while (it != v.m_data.rend())
 				os << std::setw(2) << std::setfill('0') << std::hex << static_cast<uint32_t>(*(it++));
@@ -683,7 +680,7 @@ namespace rb::math
 		}
 
 	public:
-		[[nodiscard]] explicit operator bool() const noexcept
+		[[nodiscard]] constexpr explicit operator bool() const noexcept
 		{
 			return !is_zero();
 		}
