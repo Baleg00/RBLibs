@@ -5,7 +5,7 @@
 
 namespace rb::math
 {
-	template<class T, typename std::enable_if_t<std::is_floating_point_v<T>, int> = 0>
+	template<class T, typename = typename std::enable_if_t<std::is_floating_point_v<T>>>
 	constexpr T PI = T(3.14159265358979323846L);
 
 	template<class T, size_t S, size_t C>

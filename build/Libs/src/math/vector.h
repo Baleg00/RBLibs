@@ -19,21 +19,22 @@ namespace rb::math
 	class vector
 	{
 	public: // Using declarations
-		static_assert(S != 0);
+		static_assert(S != 0, "vector cannot be 0 dimensional");
+		static_assert(std::is_arithmetic_v<T>, "type must be arithmetic");
 
 		using value_type = T;
 		using pointer = value_type*;
 		using const_pointer = const value_type*;
 		using reference = value_type&;
 		using const_reference = const value_type&;
-		using size_type = ::std::size_t;
-		using difference_type = ::std::ptrdiff_t;
+		using size_type = std::size_t;
+		using difference_type = std::ptrdiff_t;
 		using this_type = vector<T, S>;
 
-		using iterator = ::rb::iter::iterator<this_type>;
-		using const_iterator = ::rb::iter::const_iterator<this_type>;
-		using reverse_iterator = ::std::reverse_iterator<iterator>;
-		using const_reverse_iterator = ::std::reverse_iterator<const_iterator>;
+		using iterator = rb::iter::iterator<this_type>;
+		using const_iterator = rb::iter::const_iterator<this_type>;
+		using reverse_iterator = std::reverse_iterator<iterator>;
+		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 	private: // Variables
 		value_type m_vec[S];
@@ -44,53 +45,53 @@ namespace rb::math
 		{
 		}
 
-		constexpr vector(const ::std::initializer_list<value_type>& il) noexcept
+		constexpr vector(const std::initializer_list<value_type>& il) noexcept
 			: m_vec{ 0 }
 		{
-			::std::copy(il.begin(), il.end(), data());
+			std::copy(il.begin(), il.end(), data());
 		}
 
 		vector(const_pointer begin, const_pointer end) noexcept
 			: m_vec{ 0 }
 		{
-			::std::copy(begin, end, data());
+			std::copy(begin, end, data());
 		}
 
 		vector(const_pointer begin, size_type size) noexcept
 			: m_vec{ 0 }
 		{
-			::std::copy(begin, begin + size, data());
+			std::copy(begin, begin + size, data());
 		}
 
 		vector(const this_type& v) noexcept
 			: m_vec{ 0 }
 		{
-			::std::copy(v.begin(), v.end(), data());
+			std::copy(v.begin(), v.end(), data());
 		}
 
 		vector(this_type&& v) noexcept
 			: m_vec{ 0 }
 		{
-			::std::move(v.begin(), v.end(), data());
+			std::move(v.begin(), v.end(), data());
 		}
 
-		template<class U, typename ::std::enable_if_t<::std::is_convertible_v<U, T>, int> = 0>
+		template<class U, typename = typename std::enable_if_t<std::is_convertible_v<U, T>>>
 		explicit vector(const vector<U, S>& v) noexcept
 		{
 			for (size_t i = 0; i < size(); i++)
 				at(i) = static_cast<T>(v[i]);
 		}
 
-		template<class U, typename ::std::enable_if_t<::std::is_convertible_v<U, T>, int> = 0>
+		template<class U, typename = typename std::enable_if_t<std::is_convertible_v<U, T>>>
 		explicit vector(vector<U, S>&& v) noexcept
 		{
-			m_vec = ::std::move(static_cast<T*>(v.data()));
+			m_vec = std::move(static_cast<T*>(v.data()));
 		}
 
 	private: // Excpetions
 		[[noreturn]] static void _Xrange()
 		{
-			throw ::std::out_of_range("vector<T, S> subscript out of range");
+			throw std::out_of_range("vector subscript out of range");
 		}
 
 		[[nodiscard]] constexpr void _check_range(size_type idx) const
@@ -147,12 +148,12 @@ namespace rb::math
 	public: // Functions
 		void fill(const_reference v) noexcept
 		{
-			::std::fill(m_vec, m_vec + size(), v);
+			std::fill(m_vec, m_vec + size(), v);
 		}
 
 		void swap(this_type& other) noexcept
 		{
-			::std::swap(m_vec, other.m_vec);
+			std::swap(m_vec, other.m_vec);
 		}
 
 		[[nodiscard]] double mag_sqr() const noexcept
@@ -175,17 +176,17 @@ namespace rb::math
 			return sum;
 		}
 
-		[[nodiscard]] double mag() const noexcept { return ::std::sqrt(mag_sqr()); }
-		[[nodiscard]] float magf() const noexcept { return ::std::sqrtf(mag_sqrf()); }
+		[[nodiscard]] double mag() const noexcept { return std::sqrt(mag_sqr()); }
+		[[nodiscard]] float magf() const noexcept { return std::sqrtf(mag_sqrf()); }
 
 		[[nodiscard]] this_type norm() const noexcept { return *this / magf(); }
 
-		template<typename ::std::enable_if_t<(S > 1), int> = 0>
+		template<typename = typename std::enable_if_t<(S > 1)>>
 		[[nodiscard]] this_type perp() const noexcept
 		{
 			this_type v = *this;
 
-			::std::swap(v[0], v[1]);
+			std::swap(v[0], v[1]);
 			v[0] *= -1;
 
 			return v;
@@ -201,7 +202,7 @@ namespace rb::math
 			return sum;
 		}
 
-		template<typename ::std::enable_if_t<(S > 2), int> = 0>
+		template<typename = typename std::enable_if_t<(S > 2)>>
 		[[nodiscard]] this_type cross(const this_type& v) const noexcept
 		{
 			return {
@@ -224,7 +225,7 @@ namespace rb::math
 
 		[[nodiscard]] bool operator==(const this_type& rhs) const
 		{
-			return ::std::equal(begin(), end(), rhs.begin());
+			return std::equal(begin(), end(), rhs.begin());
 		}
 
 		[[nodiscard]] bool operator!=(const this_type& rhs) const
@@ -233,7 +234,7 @@ namespace rb::math
 		}
 
 		[[nodiscard]] bool operator<(const this_type& rhs) const {
-			return ::std::lexicographical_compare(begin(), end(), rhs.begin(), rhs.end());
+			return std::lexicographical_compare(begin(), end(), rhs.begin(), rhs.end());
 		}
 
 		[[nodiscard]] bool operator<=(const this_type& rhs) const
@@ -253,7 +254,7 @@ namespace rb::math
 
 		this_type& operator=(const this_type& rhs)
 		{
-			::std::copy(rhs.begin(), rhs.end(), begin());
+			std::copy(rhs.begin(), rhs.end(), begin());
 			return *this;
 		}
 
@@ -363,7 +364,7 @@ namespace rb::math
 			return *this;
 		}
 
-		friend ::std::ostream& operator<<(::std::ostream& os, const this_type& v)
+		friend std::ostream& operator<<(std::ostream& os, const this_type& v)
 		{
 			os << "[";
 
@@ -378,14 +379,6 @@ namespace rb::math
 			os << "]";
 
 			return os;
-		}
-
-		friend ::std::istream& operator>>(::std::istream& is, this_type& v)
-		{
-			for (reference i : v)
-				is >> i;
-
-			return is;
 		}
 	};
 

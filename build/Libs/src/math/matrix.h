@@ -17,7 +17,7 @@
 
 namespace rb::math
 {
-	template<typename T, size_t R, size_t C>
+	template<class T, size_t R, size_t C>
 	class matrix
 	{
 	public: // Using declarations
@@ -33,8 +33,8 @@ namespace rb::math
 		using difference_type = std::ptrdiff_t;
 		using this_type = matrix<T, R, C>;
 
-		using iterator = ::rb::iter::iterator<this_type>;
-		using const_iterator = ::rb::iter::const_iterator<this_type>;
+		using iterator = rb::iter::iterator<this_type>;
+		using const_iterator = rb::iter::const_iterator<this_type>;
 		using reverse_iterator = std::reverse_iterator<iterator>;
 		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -336,7 +336,7 @@ namespace rb::math
 		}
 
 	private:
-		template<typename U, size_t _S, typename = typename std::enable_if_t<(_S > 2 && std::is_arithmetic_v<U>)>>
+		template<typename U, size_t _S>
 		[[nodiscard]] static bool _has_identical_rows(const matrix<U, _S, _S>& m) noexcept
 		{
 			for (size_type i = 0; i < m.rows(); i++)
@@ -348,7 +348,7 @@ namespace rb::math
 			return false;
 		}
 
-		template<typename U, size_t _S, typename std::enable_if_t<(_S >= 2 && std::is_arithmetic_v<U>), int> = 0>
+		template<typename U, size_t _S>
 		[[nodiscard]] static U _gaussian_determinant(const matrix<U, _S, _S>& m) noexcept
 		{
 			if constexpr (_S == 2)
@@ -391,7 +391,7 @@ namespace rb::math
 			return det;
 		}
 
-		template<typename U, size_t _S, typename std::enable_if_t<(_S > 2 && std::is_arithmetic_v<U>), int> = 0>
+		template<typename U, size_t _S, typename std::enable_if_t<(_S > 2), int> = 0>
 		[[nodiscard]] static U _recursive_determinant(const matrix<U, _S, _S>& m) noexcept
 		{
 			value_type det = 0;
@@ -402,10 +402,31 @@ namespace rb::math
 			return det;
 		}
 
-		template<typename U, size_t _S, typename std::enable_if_t<(_S == 2 && std::is_arithmetic_v<U>), int> = 0>
+		template<typename U, size_t _S, typename std::enable_if_t<(_S == 2), int> = 0>
 		[[nodiscard]] static U _recursive_determinant(const matrix<U, _S, _S>& m) noexcept
 		{
 			return m.at(0, 0) * m.at(1, 1) - m.at(0, 1) * m.at(1, 0);
+		}
+
+		template<typename U, size_t _S, typename std::enable_if_t<(_S == 2), int> = 0>
+		[[nodiscard]] static this_type _inverse(const matrix<U, _S, _S>& m) noexcept
+		{
+			value_type det = m.determinant();
+
+			return this_type{
+				 m.at(1, 1), -m.at(0, 1),
+				-m.at(1, 0),  m.at(0, 0)
+			} * (value_type(1) / det);
+		}
+
+		template<typename U, size_t _S, typename std::enable_if_t<(_S > 2), int> = 0>
+		[[nodiscard]] static this_type _inverse(const matrix<U, _S, _S>& m) noexcept
+		{
+			this_type cof = m.cofactors();
+			this_type adj = cof.transpose();
+			value_type det = m.determinant();
+
+			return adj * (value_type(1) / det);
 		}
 
 	public:
@@ -415,7 +436,7 @@ namespace rb::math
 			return _recursive_determinant(*this);
 		}
 
-		template<typename = typename std::enable_if_t<(R == C)>>
+		template<typename = typename std::enable_if_t<(R == C && R > 2)>>
 		[[nodiscard]] this_type minors() const noexcept
 		{
 			this_type m;
@@ -427,7 +448,7 @@ namespace rb::math
 			return m;
 		}
 
-		template<typename = typename std::enable_if_t<(R == C)>>
+		template<typename = typename std::enable_if_t<(R == C && R > 2)>>
 		[[nodiscard]] this_type cofactors() const noexcept
 		{
 			this_type m = minors();
@@ -438,14 +459,10 @@ namespace rb::math
 			return m;
 		}
 
-		template<typename = typename std::enable_if_t<(R == C)>>
+		template<typename std::enable_if_t<(R == C), int> = 0>
 		[[nodiscard]] this_type inverse() const noexcept
 		{
-			this_type cof = cofactors();
-			this_type adj = cof.transpose();
-			value_type det = determinant();
-
-			return adj * (1.0f / det);
+			return _inverse(*this);
 		}
 
 	public: // Operator overloads
@@ -548,21 +565,19 @@ namespace rb::math
 			return *this;
 		}
 
-		template<size_t _D>
-		[[nodiscard]] matrix<value_type, R, _D> operator*(const matrix<value_type, C, _D>& rhs) const
+		[[nodiscard]] matrix<value_type, R, R> operator*(const matrix<value_type, C, R>& rhs) const
 		{
-			value_type m[R][_D] = { 0 };
+			value_type m[R][R] = { 0 };
 
 			for (size_type i = 0; i < R; i++)
-				for (size_type j = 0; j < _D; j++)
+				for (size_type j = 0; j < R; j++)
 					for (size_type k = 0; k < C; k++)
 						m[i][j] += m_mat[i][k] * rhs.m_mat[k][j];
 
-			return matrix<value_type, R, _D>(m);
+			return matrix<value_type, R, R>(m);
 		}
 
-		template<size_t _D>
-		matrix<value_type, R, _D>& operator*=(const matrix<value_type, C, _D>& rhs)
+		matrix<value_type, R, R>& operator*=(const matrix<value_type, C, R>& rhs)
 		{
 			*this = *this * rhs;
 			return *this;
