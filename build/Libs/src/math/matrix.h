@@ -303,36 +303,44 @@ namespace rb::math
 		}
 
 	public:
-		void switch_rows(size_type r0, size_type r1)
+		[[nodiscard]] this_type switch_rows(size_type r0, size_type r1) const
 		{
 			_check_range(r0, 0);
 			_check_range(r1, 0);
 
 			if (r0 == r1)
-				return;
+				return *this;
 
-			for (size_type i = 0; i < columns(); i++)
+			this_type m = *this;
+
+			for (size_type i = 0; i < m.columns(); i++)
 			{
-				T temp = at(r0, i);
-				at(r0, i) = at(r1, i);
-				at(r1, i) = temp;
+				T temp = m.at(r0, i);
+				m.at(r0, i) = m.at(r1, i);
+				m.at(r1, i) = temp;
 			}
+
+			return m;
 		}
 
-		void switch_columns(size_type c0, size_type c1)
+		[[nodiscard]] this_type switch_columns(size_type c0, size_type c1) const
 		{
 			_check_range(0, c0);
 			_check_range(0, c1);
 
 			if (c0 == c1)
-				return;
+				return *this;
 
-			for (size_type i = 0; i < rows(); i++)
+			this_type m = *this;
+
+			for (size_type i = 0; i < m.rows(); i++)
 			{
-				T temp = at(i, c0);
-				at(i, c0) = at(i, c1);
-				at(i, c1) = temp;
+				T temp = m.at(i, c0);
+				m.at(i, c0) = m.at(i, c1);
+				m.at(i, c1) = temp;
 			}
+
+			return m;
 		}
 
 	private:
