@@ -104,12 +104,6 @@ namespace rb::crypto
 		return *this;
 	}
 
-	md5& md5::write(const std::string& str) noexcept
-	{
-		std::copy(str.begin(), str.end(), std::back_inserter(m_data));
-		return *this;
-	}
-
 	void md5::digest(void* dest) noexcept
 	{
 		pad_data();
@@ -149,9 +143,85 @@ namespace rb::crypto
 		m_hash[3] = 0x10325476;
 	}
 
+	md5& md5::operator<<(char value) noexcept
+	{
+		m_data.push_back(value);
+		return *this;
+	}
+
+	md5& md5::operator<<(unsigned char value) noexcept
+	{
+		m_data.push_back(value);
+		return *this;
+	}
+
+	md5& md5::operator<<(short value) noexcept
+	{
+		uint8_t bytes[sizeof(short)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(short));
+		return *this;
+	}
+
+	md5& md5::operator<<(unsigned short value) noexcept
+	{
+		uint8_t bytes[sizeof(unsigned short)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(unsigned short));
+		return *this;
+	}
+
+	md5& md5::operator<<(int value) noexcept
+	{
+		uint8_t bytes[sizeof(int)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(int));
+		return *this;
+	}
+
+	md5& md5::operator<<(unsigned int value) noexcept
+	{
+		uint8_t bytes[sizeof(unsigned int)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(unsigned int));
+		return *this;
+	}
+
+	md5& md5::operator<<(long value) noexcept
+	{
+		uint8_t bytes[sizeof(long)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(long));
+		return *this;
+	}
+
+	md5& md5::operator<<(unsigned long value) noexcept
+	{
+		uint8_t bytes[sizeof(unsigned long)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(unsigned long));
+		return *this;
+	}
+
+	md5& md5::operator<<(long long value) noexcept
+	{
+		uint8_t bytes[sizeof(long long)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(long long));
+		return *this;
+	}
+
+	md5& md5::operator<<(unsigned long long value) noexcept
+	{
+		uint8_t bytes[sizeof(unsigned long long)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(unsigned long long));
+		return *this;
+	}
+
 	md5& md5::operator<<(const std::string& str) noexcept
 	{
-		write(str);
+		write(str.data(), str.size());
 		return *this;
 	}
 
@@ -165,7 +235,7 @@ namespace rb::crypto
 	std::string md5::operator()(const std::string& str) noexcept
 	{
 		clear();
-		write(str);
+		write(str.data(), str.size());
 		return hex_digest();
 	}
 }

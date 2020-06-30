@@ -92,12 +92,6 @@ namespace rb::crypto
 		return *this;
 	}
 	
-	sha1& sha1::write(const std::string& str) noexcept
-	{
-		std::copy(str.begin(), str.end(), std::back_inserter(m_data));
-		return *this;
-	}
-	
 	void sha1::digest(void* dest) noexcept
 	{
 		pad_data();
@@ -133,23 +127,99 @@ namespace rb::crypto
 		m_hash[4] = 0xC3D2E1F0;
 	}
 	
-	sha1& sha1::operator<<(const std::string& str) noexcept
+	sha1& sha1::operator<<(char value) noexcept
 	{
-		write(str);
+		m_data.push_back(value);
 		return *this;
 	}
-	
+
+	sha1& sha1::operator<<(unsigned char value) noexcept
+	{
+		m_data.push_back(value);
+		return *this;
+	}
+
+	sha1& sha1::operator<<(short value) noexcept
+	{
+		uint8_t bytes[sizeof(short)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(short));
+		return *this;
+	}
+
+	sha1& sha1::operator<<(unsigned short value) noexcept
+	{
+		uint8_t bytes[sizeof(unsigned short)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(unsigned short));
+		return *this;
+	}
+
+	sha1& sha1::operator<<(int value) noexcept
+	{
+		uint8_t bytes[sizeof(int)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(int));
+		return *this;
+	}
+
+	sha1& sha1::operator<<(unsigned int value) noexcept
+	{
+		uint8_t bytes[sizeof(unsigned int)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(unsigned int));
+		return *this;
+	}
+
+	sha1& sha1::operator<<(long value) noexcept
+	{
+		uint8_t bytes[sizeof(long)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(long));
+		return *this;
+	}
+
+	sha1& sha1::operator<<(unsigned long value) noexcept
+	{
+		uint8_t bytes[sizeof(unsigned long)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(unsigned long));
+		return *this;
+	}
+
+	sha1& sha1::operator<<(long long value) noexcept
+	{
+		uint8_t bytes[sizeof(long long)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(long long));
+		return *this;
+	}
+
+	sha1& sha1::operator<<(unsigned long long value) noexcept
+	{
+		uint8_t bytes[sizeof(unsigned long long)];
+		bit::write_be(bytes, value);
+		write(bytes, sizeof(unsigned long long));
+		return *this;
+	}
+
+	sha1& sha1::operator<<(const std::string& str) noexcept
+	{
+		write(str.data(), str.size());
+		return *this;
+	}
+
 	std::string sha1::operator()(const void* data, size_t size) noexcept
 	{
 		clear();
 		write(data, size);
 		return hex_digest();
 	}
-	
+
 	std::string sha1::operator()(const std::string& str) noexcept
 	{
 		clear();
-		write(str);
+		write(str.data(), str.size());
 		return hex_digest();
 	}
 }
