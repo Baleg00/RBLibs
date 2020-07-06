@@ -1,6 +1,6 @@
 #include <CppUnitTest.h>
 
-#include "math/biguint.h"
+#include "math/bigint.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -44,20 +44,6 @@ namespace rb::tests
 		{
 			uint128 v = "88e0649a92bb1aadbf485bad2637a75e"_u128 % "15859e93105512c3a27e07c499bd723d"_u128;
 			uint128 r = "7bead2830bcaa17f0542d118bc6f9f0"_u128;
-			Assert::IsTrue(v == r);
-		}
-
-		TEST_METHOD(SQRT_128)
-		{
-			uint128 v = "254a3f6bd8a408eda2332f0b2030af54"_u128.sqrt();
-			uint128 r = "61b474697b361ca6"_u128;
-			Assert::IsTrue(v == r);
-		}
-
-		TEST_METHOD(POW_128)
-		{
-			uint128 v = "ea0336de"_u128.pow("04"_u128);
-			uint128 r = "b2bf04fcdfee4f84107c7bda685b8410"_u128;
 			Assert::IsTrue(v == r);
 		}
 
@@ -147,6 +133,80 @@ namespace rb::tests
 			uint128 v1 = "17cc686996c972c024855cc213849b2a"_u128;
 			Assert::IsTrue(v0 >= v0);
 			Assert::IsTrue(v0 >= v1);
+		}
+
+		TEST_METHOD(ZERO_128)
+		{
+			uint128 v0 = "68cfccbbef8e9ad7a8a15a1eb3ae8a0f"_u128;
+			Assert::IsFalse(v0.is_zero());
+
+			uint128 v1 = "0"_u128;
+			Assert::IsTrue(v1.is_zero());
+		}
+
+		TEST_METHOD(SQRT_128)
+		{
+			uint128 v = "254a3f6bd8a408eda2332f0b2030af54"_u128.sqrt();
+			uint128 r = "61b474697b361ca6"_u128;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(POW_128)
+		{
+			uint128 v = "ea0336de"_u128.pow("04"_u128);
+			uint128 r = "b2bf04fcdfee4f84107c7bda685b8410"_u128;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(LOG_128)
+		{
+			uint128 v = "0b12842e1adf664fbbdd24bf638ae80e"_u128.log("64"_u128);
+			uint128 r = "12"_u128;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(LOG2_128)
+		{
+			uint128 v = "2ac68abd5d4fbd4dcf8bd324c75c25cd"_u128.log2();
+			uint128 r = "7d"_u128;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(GCD_128)
+		{
+			uint128 v0 = "7c88ae7dacceb8adebe7c98eeabb7b84"_u128;
+			uint128 v1 = "3ff232dcdd2d081cffccd25eb13ac9b2"_u128;
+			uint128 r = "02"_u128;
+			Assert::IsTrue(v0.gcd(v1) == r);
+		}
+
+		TEST_METHOD(LCM_128)
+		{
+			uint128 v0 = "3b54bd67f818bbf4"_u128;
+			uint128 v1 = "04a32b51f17de60a"_u128;
+			uint128 r = "8991fa3955d9a079c7d81731fc47c4"_u128;
+			Assert::IsTrue(v0.lcm(v1) == r);
+		}
+
+		TEST_METHOD(CONST_ZERO_128)
+		{
+			Assert::IsTrue(uint128::ZERO() == "0"_u128);
+			Assert::IsTrue(uint128::ZERO().is_zero());
+		}
+
+		TEST_METHOD(CONST_ONE_128)
+		{
+			Assert::IsTrue(uint128::ONE() == "1"_u128);
+		}
+
+		TEST_METHOD(CONST_MIN_128)
+		{
+			Assert::IsTrue(uint128::MIN() == uint128::ZERO());
+		}
+
+		TEST_METHOD(CONST_MAX_128)
+		{
+			Assert::IsTrue(uint128::MAX() == "ffffffffffffffffffffffffffffffff"_u128);
 		}
 
 	};

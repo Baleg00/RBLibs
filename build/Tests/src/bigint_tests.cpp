@@ -75,20 +75,6 @@ namespace rb::tests
 			Assert::IsTrue(v3 == r3);
 		}
 
-		TEST_METHOD(SQRT_128)
-		{
-			int128 v = "254a3f6bd8a408eda2332f0b2030af54"_i128.sqrt();
-			int128 r = "61b474697b361ca6"_i128;
-			Assert::IsTrue(v == r);
-		}
-
-		TEST_METHOD(POW_128)
-		{
-			int128 v = "ea0336de"_i128.pow("04"_i128);
-			int128 r = "b2bf04fcdfee4f84107c7bda685b8410"_i128;
-			Assert::IsTrue(v == r);
-		}
-
 		TEST_METHOD(AND_128)
 		{
 			int128 v = "23c857d06582543dab9c450ba9c5a5b1"_i128 & "16267c48064d57baa758cecc58754863"_i128;
@@ -191,6 +177,98 @@ namespace rb::tests
 			int128 v1 = "17cc686996c972c024855cc213849b2a"_i128;
 			Assert::IsTrue(v0 >= v0);
 			Assert::IsTrue(v0 >= v1);
+		}
+
+		TEST_METHOD(SIGN_128)
+		{
+			int128 v0 = "2e14f00cde87e7a83cbe2bdd6c44ebe8"_i128;
+			Assert::IsTrue(v0.sign() > 0);
+
+			int128 v1 = -"735dca06317beaaeac72b1e1c17ed7fd"_i128;
+			Assert::IsTrue(v1.sign() < 0);
+		}
+
+		TEST_METHOD(ZERO_128)
+		{
+			int128 v0 = "68cfccbbef8e9ad7a8a15a1eb3ae8a0f"_i128;
+			Assert::IsFalse(v0.is_zero());
+
+			int128 v1 = "0"_i128;
+			Assert::IsTrue(v1.is_zero());
+		}
+
+		TEST_METHOD(ABS_128)
+		{
+			int128 v0 = "5ed04c1a3c2fe00d51a769b6c9b3bcfa"_i128;
+			Assert::IsTrue(v0.abs() == v0);
+
+			int128 v1 = -"3fee7fea7a16ae8fbf8b6c5f9071e2ee"_i128;
+			Assert::IsTrue(v1.abs() == -v1);
+		}
+
+		TEST_METHOD(SQRT_128)
+		{
+			int128 v = "254a3f6bd8a408eda2332f0b2030af54"_i128.sqrt();
+			int128 r = "61b474697b361ca6"_i128;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(POW_128)
+		{
+			int128 v = "ea0336de"_i128.pow("04"_i128);
+			int128 r = "b2bf04fcdfee4f84107c7bda685b8410"_i128;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(LOG_128)
+		{
+			int128 v = "0b12842e1adf664fbbdd24bf638ae80e"_i128.log("64"_i128);
+			int128 r = "12"_i128;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(LOG2_128)
+		{
+			int128 v = "2ac68abd5d4fbd4dcf8bd324c75c25cd"_i128.log2();
+			int128 r = "7d"_i128;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(GCD_128)
+		{
+			int128 v0 = "7c88ae7dacceb8adebe7c98eeabb7b84"_i128;
+			int128 v1 = "3ff232dcdd2d081cffccd25eb13ac9b2"_i128;
+			int128 r = "02"_i128;
+			Assert::IsTrue(v0.gcd(v1) == r);
+		}
+
+		TEST_METHOD(LCM_128)
+		{
+			int128 v0 = "3b54bd67f818bbf4"_i128;
+			int128 v1 = "04a32b51f17de60a"_i128;
+			int128 r = "8991fa3955d9a079c7d81731fc47c4"_i128;
+			Assert::IsTrue(v0.lcm(v1) == r);
+		}
+
+		TEST_METHOD(CONST_ZERO_128)
+		{
+			Assert::IsTrue(int128::ZERO() == "0"_i128);
+			Assert::IsTrue(int128::ZERO().is_zero());
+		}
+
+		TEST_METHOD(CONST_ONE_128)
+		{
+			Assert::IsTrue(int128::ONE() == "1"_i128);
+		}
+
+		TEST_METHOD(CONST_MIN_128)
+		{
+			Assert::IsTrue(int128::MIN() == -"80000000000000000000000000000000"_i128);
+		}
+
+		TEST_METHOD(CONST_MAX_128)
+		{
+			Assert::IsTrue(int128::MAX() == "7fffffffffffffffffffffffffffffff"_i128);
 		}
 
 	};
