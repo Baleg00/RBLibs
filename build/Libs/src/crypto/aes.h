@@ -60,7 +60,9 @@ namespace rb::crypto
 		static constexpr size_t BLOCK_SIZE = B * 4 * 8;
 		static constexpr size_t ROUNDS = R;
 
-		static_assert(M == cipher_mode::ECB || M == cipher_mode::CBC, "cipher mode is not implemented");
+		static_assert(M == cipher_mode::ECB || 
+			M == cipher_mode::CBC || 
+			M == cipher_mode::PCBC, "cipher mode is not implemented");
 
 	public:
 		aes() noexcept
@@ -107,6 +109,26 @@ namespace rb::crypto
 					std::memcpy(reinterpret_cast<uint8_t*>(dest) + i, v, B * 4);
 				}
 			}
+			else if constexpr (M == cipher_mode::PCBC)
+			{
+				uint8_t v[B * 4]{ 0 };
+
+				for (size_t i = 0; i < digest_size; i += B * 4)
+				{
+					uint8_t in[B * 4];
+					std::memcpy(in, m_data.data() + i, B * 4);
+
+					for (size_t j = 0; j < B * 4; j++)
+						in[j] ^= v[j];
+
+					cipher(in, v, w);
+
+					std::memcpy(reinterpret_cast<uint8_t*>(dest) + i, v, B * 4);
+
+					for (size_t j = 0; j < B * 4; j++)
+						v[j] ^= m_data[i + j];
+				}
+			}
 
 			return m_data.size();
 		}
@@ -139,6 +161,24 @@ namespace rb::crypto
 
 					std::memcpy(reinterpret_cast<uint8_t*>(dest) + i, out, B * 4);
 					std::memcpy(v, m_data.data() + i, B * 4);
+				}
+			}
+			else if constexpr (M == cipher_mode::PCBC)
+			{
+				uint8_t v[B * 4]{ 0 };
+
+				for (size_t i = 0; i < digest_size; i += B * 4)
+				{
+					uint8_t out[B * 4];
+					inv_cipher(m_data.data() + i, out, w);
+
+					for (size_t j = 0; j < B * 4; j++)
+						out[j] ^= v[j];
+
+					std::memcpy(reinterpret_cast<uint8_t*>(dest) + i, out, B * 4);
+
+					for (size_t j = 0; j < B * 4; j++)
+						v[j] = out[j] ^ m_data[i + j];
 				}
 			}
 
@@ -506,7 +546,7 @@ namespace rb::crypto
 		}
 	};
 
-	using aes_128 = aes<cipher_mode::CBC, 4, 4, 10>;
-	using aes_192 = aes<cipher_mode::CBC, 6, 4, 12>;
-	using aes_256 = aes<cipher_mode::CBC, 8, 4, 14>;
+	using aes_128 = aes<cipher_mode::PCBC, 4, 4, 10>;
+	using aes_192 = aes<cipher_mode::PCBC, 6, 4, 12>;
+	using aes_256 = aes<cipher_mode::PCBC, 8, 4, 14>;
 }
