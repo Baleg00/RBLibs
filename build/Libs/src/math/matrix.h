@@ -314,11 +314,7 @@ namespace rb::math
 			this_type m = *this;
 
 			for (size_type i = 0; i < m.columns(); i++)
-			{
-				T temp = m.at(r0, i);
-				m.at(r0, i) = m.at(r1, i);
-				m.at(r1, i) = temp;
-			}
+				std::swap(m.at(r0, i), m.at(r1, i));
 
 			return m;
 		}
@@ -363,38 +359,33 @@ namespace rb::math
 				return m.at(0, 0) * m.at(1, 1) - m.at(0, 1) * m.at(1, 0);
 
 			matrix<U, _S, _S> temp = m;
+			value_type det = 1;
 
-			size_type max_idx = 0;
-
-			for (size_type i = 0; i < temp.rows(); i++)
-				if (std::abs(temp.at(i, 0)) > std::abs(temp.at(max_idx, 0)))
-					max_idx = i;
-
-			if (temp.at(max_idx, 0) == 0)
-				return 0;
-			
-			U det = 1;
-
-			if (max_idx != 0)
+			for (size_type i = 0; i < _S - 1; i++)
 			{
-				temp.switch_rows(0, max_idx);
-				det = -1;
-			}
+				size_type max = i;
 
-			for (size_type i = 0; i < temp.columns() - 1; i++)
-			{
-				for (size_type j = temp.rows() - 1; j > i; j--)
+				for (size_type j = i + 1; j < _S; j++)
+					if (std::abs(temp.at(j, i)) > std::abs(temp.at(max, i)))
+						max = j;
+
+				if (i != max)
 				{
-					U r = temp.at(j, i) / temp.at(i, i);
+					det = -det;
+					temp = temp.switch_rows(i, max);
+				}
 
-					for (size_type k = 0; k < temp.columns(); k++)
-						temp.at(j, k) -= r * temp.at(i, k);
+				for (size_type r = i + 1; r < _S; r++)
+				{
+					value_type q = temp.at(r, i) / temp.at(i, i);
+
+					for (size_type c = i; c < _S; c++)
+						temp.at(r, c) -= q * temp.at(i, c);
 				}
 			}
 
-			for (size_type i = 0; i < temp.size(); i++)
-				if (i % (temp.columns() + 1) == 0)
-					det *= temp.at(i);
+			for (size_type i = 0; i < _S; i++)
+				det *= temp.at(i, i);
 
 			return det;
 		}
@@ -417,31 +408,38 @@ namespace rb::math
 		}
 
 		template<typename U, size_t _S, typename std::enable_if_t<(_S == 2), int> = 0>
-		[[nodiscard]] static this_type _inverse(const matrix<U, _S, _S>& m) noexcept
+		[[nodiscard]] static this_type _inverse(const matrix<U, _S, _S>& m)
 		{
 			value_type det = m.determinant();
+
+			if (det == 0)
+				throw std::domain_error("matrix inverse does not exist");
 
 			return this_type{
 				 m.at(1, 1), -m.at(0, 1),
 				-m.at(1, 0),  m.at(0, 0)
-			} * (value_type(1) / det);
+			} / det;
 		}
 
 		template<typename U, size_t _S, typename std::enable_if_t<(_S > 2), int> = 0>
-		[[nodiscard]] static this_type _inverse(const matrix<U, _S, _S>& m) noexcept
+		[[nodiscard]] static this_type _inverse(const matrix<U, _S, _S>& m)
 		{
-			this_type cof = m.cofactors();
-			this_type adj = cof.transpose();
 			value_type det = m.determinant();
 
-			return adj * (value_type(1) / det);
+			if (det == 0)
+				throw std::domain_error("matrix inverse does not exist");
+
+			this_type cof = m.cofactors();
+			this_type adj = cof.transpose();
+
+			return adj / det;
 		}
 
 	public:
 		template<typename = typename std::enable_if_t<(R == C)>>
 		[[nodiscard]] value_type determinant() const noexcept
 		{
-			return _recursive_determinant(*this);
+			return _gaussian_determinant(*this);
 		}
 
 		template<typename = typename std::enable_if_t<(R == C && R > 2)>>
@@ -468,7 +466,7 @@ namespace rb::math
 		}
 
 		template<typename std::enable_if_t<(R == C), int> = 0>
-		[[nodiscard]] this_type inverse() const noexcept
+		[[nodiscard]] this_type inverse() const
 		{
 			return _inverse(*this);
 		}
