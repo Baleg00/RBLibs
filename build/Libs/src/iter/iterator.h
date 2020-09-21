@@ -9,11 +9,11 @@ namespace rb::iter
 	{
 	public:
 		using iterator_category = std::random_access_iterator_tag;
-		using value_type = typename T::value_type;
-		using difference_type = typename T::difference_type;
-		using pointer = typename T::pointer;
-		using reference = typename T::reference;
-		using this_type = iterator<T>;
+		using value_type = T;
+		using pointer = value_type*;
+		using reference = value_type&;
+		using difference_type = std::ptrdiff_t;
+		using this_type = iterator<value_type>;
 
 	public:
 		constexpr explicit iterator(pointer ptr)
@@ -56,10 +56,10 @@ namespace rb::iter
 	{
 	public:
 		using iterator_category = std::random_access_iterator_tag;
-		using value_type = typename T::value_type;
-		using difference_type = typename T::difference_type;
-		using pointer = typename T::const_pointer;
-		using reference = typename T::const_reference;
+		using value_type = T;
+		using difference_type = std::ptrdiff_t;
+		using pointer = const T*;
+		using reference = const T&;
 		using this_type = const_iterator<T>;
 
 	public:
