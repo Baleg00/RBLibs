@@ -146,6 +146,53 @@ namespace rb::tests
 			Assert::IsTrue(sm_expected == sm);
 		}
 
+		TEST_METHOD(AUGMENT_ROWS)
+		{
+			matf<2, 3> m1{
+				1.0f, 2.0f, 3.0f,
+				4.0f, 5.0f,	6.0f
+			};
+
+			matf<1, 3> m2{
+				7.0f, 8.0f, 9.0f
+			};
+
+			mat3f ar_expected{
+				1.0f, 2.0f, 3.0f,
+				4.0f, 5.0f, 6.0f,
+				7.0f, 8.0f, 9.0f
+			};
+
+			mat3f ar = m1.augment_rows(m2);
+
+			Assert::IsTrue(ar_expected == ar);
+		}
+
+		TEST_METHOD(AUGMENT_COLUMNS)
+		{
+			matf<3, 2> m1{
+				1.0f, 2.0f,
+				4.0f, 5.0f,
+				7.0f, 8.0f
+			};
+
+			matf<3, 1> m2{
+				3.0f,
+				6.0f,
+				9.0f
+			};
+
+			mat3f ac_expected{
+				1.0f, 2.0f, 3.0f,
+				4.0f, 5.0f, 6.0f,
+				7.0f, 8.0f, 9.0f
+			};
+
+			mat3f ac = m1.augment_columns(m2);
+
+			Assert::IsTrue(ac_expected == ac);
+		}
+
 		TEST_METHOD(SWITCH_ROWS)
 		{
 			mat3f m{

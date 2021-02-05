@@ -4,302 +4,259 @@
 
 #include <algorithm>
 
-#include <random>
-
 #include <iostream>
 
 #include <type_traits>
 #include <initializer_list>
-
-#include <iterator>
-
-#include "iter/iterator.h"
 
 namespace rb::math
 {
 	template<class T, size_t R, size_t C>
 	class matrix
 	{
-	public: // Using declarations
-		static_assert(R > 1 && C > 1, "matrix must have at least two rows and columns");
-		static_assert(std::is_arithmetic_v<T>, "type must be arithmetic");
+	public:
+		static_assert(R > 0 && C > 0, "`matrix<T, R, C>`: matrix must have at least 2 rows `R` and 2 columns `C`");
+		static_assert(std::is_arithmetic_v<T>, "`matrix<T, R, C>`: matrix type `T` must be arithmetic");
 
 		using value_type = T;
 		using pointer = value_type*;
 		using const_pointer = const value_type*;
 		using reference = value_type&;
 		using const_reference = const value_type&;
-		using size_type = std::size_t;
-		using difference_type = std::ptrdiff_t;
+
 		using this_type = matrix<T, R, C>;
 
-		using iterator = rb::iter::iterator<value_type>;
-		using const_iterator = rb::iter::const_iterator<value_type>;
-		using reverse_iterator = std::reverse_iterator<iterator>;
-		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+		static constexpr size_t ROWS = R;
+		static constexpr size_t COLS = C;
 
-	public: // Constructors
+		static constexpr size_t SIZE = R * C;
+
+	private:
+		static constexpr bool IS_SQUARE = R == C;
+
+	public:
 		constexpr matrix() noexcept
 			: m_mat{ 0 }
 		{
 		}
 
-		matrix(const std::initializer_list<value_type>& il) noexcept
-			: m_mat{ 0 }
+		matrix(std::initializer_list<value_type> il) noexcept
+			: matrix()
 		{
-			std::copy(il.begin(), il.end(), data());
+			for (size_t i = 0; i < std::min(il.size(), SIZE); i++)
+				at(i) = il.begin()[i];
 		}
 
-		explicit matrix(const value_type m[R][C]) noexcept
-			: m_mat{ 0 }
+		explicit constexpr matrix(const value_type (&m)[R][C]) noexcept
+			: matrix()
 		{
-			std::copy(&m[0][0], &m[0][0] + (R * C), data());
+			for (size_t r = 0; r < ROWS; r++)
+				for (size_t c = 0; c < COLS; c++)
+					at(r, c) = m[r][c];
 		}
 
-		matrix(const_pointer begin, const_pointer end) noexcept
-			: m_mat{ 0 }
+		constexpr matrix(const_pointer begin, const_pointer end) noexcept
+			: matrix()
 		{
-			std::copy(begin, end, data());
+			for (size_t i = 0; i < std::min(static_cast<size_t>(end - begin), SIZE); i++)
+				at(i) = begin[i];
 		}
 
-		matrix(const_pointer begin, size_type size) noexcept
-			: m_mat{ 0 }
+		constexpr matrix(const_pointer begin, size_t size) noexcept
+			: matrix()
 		{
-			std::copy(begin, begin + size, data());
+			for (size_t i = 0; i < std::min(size, this->SIZE); i++)
+				at(i) = begin[i];
 		}
 
-		matrix(const this_type& m) noexcept
-			: m_mat{ 0 }
+		constexpr matrix(const this_type& m) noexcept
+			: matrix()
 		{
-			std::copy(m.begin(), m.end(), data());
+			for (size_t i = 0; i < SIZE; i++)
+				at(i) = m.at(i);
 		}
 
-		matrix(this_type&& m) noexcept
-			: m_mat{ 0 }
+		constexpr matrix(this_type&& m) noexcept
+			: matrix()
 		{
-			std::move(m.begin(), m.end(), data());
+			for (size_t i = 0; i < SIZE; i++)
+				at(i) = std::move(m.at(i));
 		}
 
-		template<class U, typename std::enable_if_t<std::is_convertible_v<U, T>, int> = 0>
-		explicit matrix(const matrix<U, R, C>& m) noexcept
+	public:
+		template<typename = typename std::enable_if_t<IS_SQUARE>>
+		[[nodiscard]] static constexpr this_type IDENTITY() noexcept
 		{
-			for (size_t i = 0; i < size(); i++)
-				at(i) = static_cast<T>(m.at(i));
+			this_type identity;
+
+			for (size_t i = 0; i < SIZE; i += ROWS + 1)
+				identity.at(i) = 1;
+
+			return identity;
 		}
 
-		template<class U, typename std::enable_if_t<std::is_convertible_v<U, T>, int> = 0>
-		explicit matrix(matrix<U, R, C>&& m) noexcept
-		{
-			m_mat = std::move(static_cast<T*>(m.data()));
-		}
-
-	private: // Exceptions
+	private:
 		[[noreturn]] static void _Xrange()
 		{
-			throw std::out_of_range("matrix subscript out of range");
+			throw std::out_of_range("`matrix<T, R, C>`: subscript out of range");
 		}
 
-		constexpr void _check_range(size_type r, size_type c) const
+		constexpr void _check_range(size_t r, size_t c) const
 		{
-			if (r >= rows() || c >= columns())
+			if (r >= ROWS || c >= COLS)
 				_Xrange();
 		}
 
-		constexpr void _check_range(size_type idx) const
+		constexpr void _check_range(size_t idx) const
 		{
-			if (idx >= size())
+			if (idx >= SIZE)
 				_Xrange();
 		}
 
-	public: // Element access
-		[[nodiscard]] constexpr const_reference at(size_type idx) const
+	public:
+		[[nodiscard]] constexpr const_reference at(size_t idx) const
 		{
 			_check_range(idx);
-			return data()[idx];
+			return m_mat[idx / COLS][idx % COLS];
 		}
 
-		[[nodiscard]] constexpr reference at(size_type idx)
+		[[nodiscard]] constexpr reference at(size_t idx)
 		{
 			_check_range(idx);
-			return data()[idx];
+			return m_mat[idx / COLS][idx % COLS];
 		}
 		
-		[[nodiscard]] constexpr const_reference at(size_type r, size_type c) const
+		[[nodiscard]] constexpr const_reference at(size_t r, size_t c) const
 		{
 			_check_range(r, c);
 			return m_mat[r][c];
 		}
 
-		[[nodiscard]] constexpr reference at(size_type r, size_type c)
+		[[nodiscard]] constexpr reference at(size_t r, size_t c)
 		{
 			_check_range(r, c);
 			return m_mat[r][c];
 		}
 
-		[[nodiscard]] constexpr const_pointer data() const noexcept { return &m_mat[0][0]; }
+	public:
 		[[nodiscard]] constexpr pointer data() noexcept { return &m_mat[0][0]; }
-
-	public: // Capacity
-		[[nodiscard]] constexpr size_type rows() const noexcept { return R; }
-		[[nodiscard]] constexpr size_type columns() const noexcept { return C; }
-
-		[[nodiscard]] constexpr size_type size() const noexcept { return R * C; }
-		[[nodiscard]] constexpr size_type max_size() const noexcept { return R * C; }
-
-	public: // Iterators
-		[[nodiscard]] constexpr const_iterator begin() const noexcept { return const_iterator(data()); }
-		[[nodiscard]] constexpr iterator begin() noexcept { return iterator(data()); }
+		[[nodiscard]] constexpr const_pointer data() const noexcept { return &m_mat[0][0]; }
 		
-		[[nodiscard]] constexpr const_iterator cbegin() const noexcept { return begin(); }
+		[[nodiscard]] constexpr pointer begin() noexcept { return data(); }
+		[[nodiscard]] constexpr const_pointer begin() const noexcept { return data(); }
 
-		[[nodiscard]] constexpr const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(begin()); }
-		[[nodiscard]] constexpr reverse_iterator rbegin() noexcept { return reverse_iterator(begin()); }
+		[[nodiscard]] constexpr pointer end() noexcept { return data() + SIZE; }
+		[[nodiscard]] constexpr const_pointer end() const noexcept { return data() + SIZE; }
 
-		[[nodiscard]] constexpr const_reverse_iterator crbegin() const noexcept { return rbegin(); }
-
-		[[nodiscard]] constexpr const_iterator end() const noexcept { return const_iterator(data() + size()); }
-		[[nodiscard]] constexpr iterator end() noexcept { return iterator(data() + size()); }
-
-		[[nodiscard]] constexpr const_iterator cend() const noexcept { return end(); }
-
-		[[nodiscard]] constexpr const_reverse_iterator rend() const noexcept { return const_reverse_iterator(end()); }
-		[[nodiscard]] constexpr reverse_iterator rend() noexcept { return reverse_iterator(end()); }
-
-		[[nodiscard]] constexpr const_reverse_iterator crend() const noexcept { return rend(); }
-
-	public: // Functions
-		void fill(const_reference v) noexcept
+	public:
+		constexpr void fill(const_reference v) noexcept
 		{ 
-			std::fill(&m_mat[0][0], &m_mat[0][0] + size(), v);
+			for (size_t i = 0; i < SIZE; i++)
+				at(i) = v;
 		}
 
-		void swap(this_type& other) noexcept
+		constexpr void swap(this_type& other) noexcept
 		{
-			for (size_type i = 0; i < R; i++)
-				std::swap(m_mat[i], other.m_mat[i]);
+			value_type temp;
+			for (size_t i = 0; i < R; i++)
+			{
+				temp = at(i);
+				at(i) = other.at(i);
+				other.at(i) = temp;
+			}
 		}
 
-		[[nodiscard]] bool is_null() const noexcept
+		[[nodiscard]] constexpr bool is_null() const noexcept
 		{
-			for (size_type i = 0; i < size(); i++)
-				if ((*this)[i] != 0)
+			for (size_t i = 0; i < SIZE; i++)
+				if (at(i) != 0)
 					return false;
 
 			return true;
 		}
 
-		[[nodiscard]] bool is_identity() const noexcept
+		template<typename = typename std::enable_if_t<IS_SQUARE>>
+		[[nodiscard]] constexpr bool is_identity() const noexcept
 		{
-			for (size_type i = 0; i < size(); i++)
-				if (i % (columns() + 1) == 0 && (*this)[i] != 1)
-					return false;
+			for (size_t i = 0; i < SIZE; i++)
+			{
+				if (i % (ROWS + 1) == 0)
+				{
+					if (at(i) != 1)
+						return false;
+				}
+				else
+				{
+					if (at(i) != 0)
+						return false;
+				}
+			}
 
 			return true;
 		}
 
 		[[nodiscard]] constexpr bool is_square() const noexcept
 		{
-			return rows() == columns();
+			return IS_SQUARE;
 		}
 
-		[[nodiscard]] static this_type make_identity() noexcept
+		[[nodiscard]] constexpr matrix<value_type, COLS, ROWS> transpose() const noexcept
 		{
-			this_type m;
+			matrix<value_type, COLS, ROWS> m;
 
-			for (size_type i = 0; i < m.size(); i++)
-				if (i % (C + 1) == 0)
-					m[i] = 1;
+			for (size_t r = 0; r < ROWS; r++)
+				for (size_t c = 0; c < COLS; c++)
+					m.at(c, r) = at(r, c);
 
 			return m;
 		}
 
-		template<typename U = T, typename std::enable_if_t<std::is_floating_point_v<U>, int> = 0>
-		[[nodiscard]] static this_type make_random(T minv = std::numeric_limits<T>::min(), T maxv = std::numeric_limits<T>::max()) noexcept
+		template<typename = typename std::enable_if_t<(ROWS > 1 && COLS > 1)>>
+		[[nodiscard]] constexpr matrix<value_type, ROWS - 1, COLS - 1> submatrix(size_t r, size_t c) const noexcept
 		{
-			static std::random_device rd;
-			static std::mt19937 gen(rd());
-			static std::uniform_real_distribution<T> dis(minv, maxv);
+			matrix<value_type, ROWS - 1, COLS - 1> m;
 
-			this_type temp;
-
-			for (size_type i = 0; i < temp.size(); i++)
-				temp.at(i) = dis(gen);
-
-			return temp;
-		}
-
-		template<typename U = T, typename std::enable_if_t<std::is_integral_v<U>, int> = 0>
-		[[nodiscard]] static this_type make_random(T minv = std::numeric_limits<T>::min(), T maxv = std::numeric_limits<T>::max()) noexcept
-		{
-			static std::random_device rd;
-			static std::mt19937 gen(rd());
-			static std::uniform_int_distribution<T> dis(minv, maxv);
-
-			this_type temp;
-
-			for (size_type i = 0; i < temp.size(); i++)
-				temp.at(i) = dis(gen);
-
-			return temp;
-		}
-
-		[[nodiscard]] matrix<value_type, C, R> transpose() const noexcept
-		{
-			matrix<value_type, C, R> m;
-
-			for (size_type i = 0; i < rows(); i++)
-				for (size_type j = 0; j < columns(); j++)
-					m.at(j, i) = m_mat[i][j];
-
-			return m;
-		}
-
-		template<typename = typename std::enable_if_t<(R > 2 && C > 2)>>
-		[[nodiscard]] matrix<value_type, R - 1, C - 1> submatrix(size_t r, size_t c) const noexcept
-		{
-			matrix<value_type, R - 1, C - 1> m;
-
-			for (size_type i = 0; i < rows() - 1; i++)
-				for (size_type j = 0; j < columns() - 1; j++)
-					m.at(i, j) = m_mat[i < r ? i : i + 1][j < c ? j : j + 1];
+			for (size_t i = 0; i < ROWS - 1; i++)
+				for (size_t j = 0; j < COLS - 1; j++)
+					m.at(i, j) = at(i < r ? i : i + 1, j < c ? j : j + 1);
 
 			return m;
 		}
 
 		template<size_t _C>
-		[[nodiscard]] matrix<value_type, R, C + _C> augment_columns(const matrix<value_type, R, _C>& m) const noexcept
+		[[nodiscard]] constexpr matrix<value_type, ROWS, COLS + _C> augment_columns(const matrix<value_type, ROWS, _C>& m) const noexcept
 		{
-			matrix<value_type, R, C + _C> r;
+			matrix<value_type, ROWS, COLS + _C> r;
 
-			for (size_t i = 0; i < rows(); i++)
-				for (size_t j = 0; j < columns(); j++)
+			for (size_t i = 0; i < ROWS; i++)
+				for (size_t j = 0; j < COLS; j++)
 					r.at(i, j) = at(i, j);
 
-			for (size_t i = 0; i < m.rows(); i++)
-				for (size_t j = 0; j < m.columns(); j++)
-					r.at(i, columns() + j) = m.at(i, j);
+			for (size_t i = 0; i < ROWS; i++)
+				for (size_t j = 0; j < _C; j++)
+					r.at(i, COLS + j) = m.at(i, j);
 
 			return r;
 		}
 
 		template<size_t _R>
-		[[nodiscard]] matrix<value_type, R + _R, C> augment_rows(const matrix<value_type, _R, C>& m) const noexcept
+		[[nodiscard]] constexpr matrix<value_type, ROWS + _R, COLS> augment_rows(const matrix<value_type, _R, COLS>& m) const noexcept
 		{
-			matrix<value_type, R + _R, C> r;
+			matrix<value_type, ROWS + _R, COLS> r;
 
-			for (size_t i = 0; i < rows(); i++)
-				for (size_t j = 0; j < columns(); j++)
+			for (size_t i = 0; i < ROWS; i++)
+				for (size_t j = 0; j < COLS; j++)
 					r.at(i, j) = at(i, j);
 
-			for (size_t i = 0; i < m.rows(); i++)
-				for (size_t j = 0; j < m.columns(); j++)
-					r.at(rows() + i, j) = m.at(i, j);
+			for (size_t i = 0; i < _R; i++)
+				for (size_t j = 0; j < COLS; j++)
+					r.at(ROWS + i, j) = m.at(i, j);
 
 			return r;
 		}
 
 	public:
-		[[nodiscard]] this_type switch_rows(size_type r0, size_type r1) const
+		[[nodiscard]] constexpr this_type switch_rows(size_t r0, size_t r1) const
 		{
 			_check_range(r0, 0);
 			_check_range(r1, 0);
@@ -309,13 +266,18 @@ namespace rb::math
 
 			this_type m = *this;
 
-			for (size_type i = 0; i < m.columns(); i++)
-				std::swap(m.at(r0, i), m.at(r1, i));
+			value_type temp;
+			for (size_t i = 0; i < COLS; i++)
+			{
+				temp = m.at(r0, i);
+				m.at(r0, i) = m.at(r1, i);
+				m.at(r1, i) = temp;
+			}
 
 			return m;
 		}
 
-		[[nodiscard]] this_type switch_columns(size_type c0, size_type c1) const
+		[[nodiscard]] constexpr this_type switch_columns(size_t c0, size_t c1) const
 		{
 			_check_range(0, c0);
 			_check_range(0, c1);
@@ -325,7 +287,7 @@ namespace rb::math
 
 			this_type m = *this;
 
-			for (size_type i = 0; i < m.rows(); i++)
+			for (size_t i = 0; i < ROWS; i++)
 			{
 				T temp = m.at(i, c0);
 				m.at(i, c0) = m.at(i, c1);
@@ -336,34 +298,27 @@ namespace rb::math
 		}
 
 	private:
-		template<typename U, size_t _S>
-		[[nodiscard]] static bool _has_identical_rows(const matrix<U, _S, _S>& m) noexcept
+		template<typename = typename std::enable_if_t<IS_SQUARE>>
+		[[nodiscard]] constexpr value_type _gaussian_determinant() const noexcept
 		{
-			for (size_type i = 0; i < m.rows(); i++)
-				for (size_type j = i + 1; j < m.rows(); j++)
-					if (i != j)
-						if (std::equal(m.begin() + i * m.columns(), m.begin() + (i + 1) * m.columns(), m.begin() + j * m.columns()))
-							return true;
+			if constexpr (ROWS == 2)
+				return at(0, 0) * at(1, 1) - at(0, 1) * at(1, 0);
 
-			return false;
-		}
-
-		template<typename U, size_t _S>
-		[[nodiscard]] static U _gaussian_determinant(const matrix<U, _S, _S>& m) noexcept
-		{
-			if constexpr (_S == 2)
-				return m.at(0, 0) * m.at(1, 1) - m.at(0, 1) * m.at(1, 0);
-
-			matrix<U, _S, _S> temp = m;
+			this_type temp = *this;
 			value_type det = 1;
 
-			for (size_type i = 0; i < _S - 1; i++)
+			for (size_t i = 0; i < ROWS - 1; i++)
 			{
-				size_type max = i;
+				size_t max = i;
 
-				for (size_type j = i + 1; j < _S; j++)
-					if (std::abs(temp.at(j, i)) > std::abs(temp.at(max, i)))
+				for (size_t j = i + 1; j < ROWS; j++)
+				{
+					value_type abs_j = temp.at(j, i) < 0 ? -temp.at(j, i) : temp.at(j, i);
+					value_type abs_max = temp.at(max, i) < 0 ? -temp.at(max, i) : temp.at(max, i);
+
+					if (abs_j > abs_max)
 						max = j;
+				}
 
 				if (i != max)
 				{
@@ -371,231 +326,200 @@ namespace rb::math
 					temp = temp.switch_rows(i, max);
 				}
 
-				for (size_type r = i + 1; r < _S; r++)
+				for (size_t r = i + 1; r < ROWS; r++)
 				{
 					value_type q = temp.at(r, i) / temp.at(i, i);
 
-					for (size_type c = i; c < _S; c++)
+					for (size_t c = i; c < ROWS; c++)
 						temp.at(r, c) -= q * temp.at(i, c);
 				}
 			}
 
-			for (size_type i = 0; i < _S; i++)
+			for (size_t i = 0; i < ROWS; i++)
 				det *= temp.at(i, i);
 
 			return det;
 		}
 
-		template<typename U, size_t _S, typename std::enable_if_t<(_S > 2), int> = 0>
-		[[nodiscard]] static U _recursive_determinant(const matrix<U, _S, _S>& m) noexcept
+		template<typename = typename std::enable_if_t<IS_SQUARE>>
+		[[nodiscard]] constexpr value_type _recursive_determinant() const noexcept
 		{
+			if constexpr (ROWS == 2)
+				return at(0, 0) * at(1, 1) - at(0, 1) * at(1, 0);
+
 			value_type det = 0;
 
-			for (size_type i = 0; i < _S; i++)
-				det += m.at(0, i) * _recursive_determinant(m.submatrix(0, i)) * (i % 2 ? -1 : 1);
+			for (size_t i = 0; i < _S; i++)
+				det += at(0, i) * submatrix(0, i)._recursive_determinant() * (i % 2 ? -1 : 1);
 
 			return det;
 		}
 
-		template<typename U, size_t _S, typename std::enable_if_t<(_S == 2), int> = 0>
-		[[nodiscard]] static U _recursive_determinant(const matrix<U, _S, _S>& m) noexcept
+		template<typename = typename std::enable_if_t<IS_SQUARE>>
+		[[nodiscard]] constexpr this_type _inverse() const noexcept
 		{
-			return m.at(0, 0) * m.at(1, 1) - m.at(0, 1) * m.at(1, 0);
-		}
-
-		template<typename U, size_t _S, typename std::enable_if_t<(_S == 2), int> = 0>
-		[[nodiscard]] static this_type _inverse(const matrix<U, _S, _S>& m)
-		{
-			value_type det = m.determinant();
+			value_type det = determinant();
 
 			if (det == 0)
-				throw std::domain_error("matrix inverse does not exist");
+				return {};
 
-			return this_type{
-				 m.at(1, 1), -m.at(0, 1),
-				-m.at(1, 0),  m.at(0, 0)
-			} / det;
-		}
+			if constexpr (ROWS == 2)
+				return this_type{
+					m.at(1, 1), -m.at(0, 1),
+					-m.at(1, 0), m.at(0, 0)
+				} / det;
 
-		template<typename U, size_t _S, typename std::enable_if_t<(_S > 2), int> = 0>
-		[[nodiscard]] static this_type _inverse(const matrix<U, _S, _S>& m)
-		{
-			value_type det = m.determinant();
-
-			if (det == 0)
-				throw std::domain_error("matrix inverse does not exist");
-
-			this_type cof = m.cofactors();
+			this_type cof = cofactors();
 			this_type adj = cof.transpose();
 
 			return adj / det;
 		}
 
 	public:
-		template<typename = typename std::enable_if_t<(R == C)>>
-		[[nodiscard]] value_type determinant() const noexcept
+		template<typename = typename std::enable_if_t<IS_SQUARE>>
+		[[nodiscard]] constexpr value_type determinant() const noexcept
 		{
-			return _gaussian_determinant(*this);
+			return _gaussian_determinant();
 		}
 
-		template<typename = typename std::enable_if_t<(R == C && R > 2)>>
-		[[nodiscard]] this_type minors() const noexcept
+		template<typename = typename std::enable_if_t<(IS_SQUARE && ROWS > 1)>>
+		[[nodiscard]] constexpr this_type minors() const noexcept
 		{
 			this_type m;
 
-			for (size_type i = 0; i < rows(); i++)
-				for (size_type j = 0; j < columns(); j++)
+			for (size_t i = 0; i < ROWS; i++)
+				for (size_t j = 0; j < COLS; j++)
 					m.at(i, j) = submatrix(i, j).determinant();
 
 			return m;
 		}
 
-		template<typename = typename std::enable_if_t<(R == C && R > 2)>>
-		[[nodiscard]] this_type cofactors() const noexcept
+		template<typename = typename std::enable_if_t<(IS_SQUARE && ROWS > 1)>>
+		[[nodiscard]] constexpr this_type cofactors() const noexcept
 		{
 			this_type m = minors();
 
-			for (size_type i = 1; i < size(); i += 2)
-				m[i] *= -1;
+			for (size_t i = 1; i < SIZE; i += 2)
+				m.at(i) *= -1;
 
 			return m;
 		}
 
-		template<typename std::enable_if_t<(R == C), int> = 0>
-		[[nodiscard]] this_type inverse() const
+		template<typename = typename std::enable_if_t<IS_SQUARE, int>>
+		[[nodiscard]] constexpr this_type inverse() const
 		{
-			return _inverse(*this);
+			return _inverse();
 		}
 
-	public: // Operator overloads
-		[[nodiscard]] const_reference operator[](size_type idx) const
+	public:
+		[[nodiscard]] constexpr const_reference operator[](size_t idx) const
 		{
-			return data()[idx];
+			return at(idx);
 		}
 
-		[[nodiscard]] reference operator[](size_type idx)
+		[[nodiscard]] constexpr reference operator[](size_t idx)
 		{
-			return data()[idx];
+			return at(idx);
 		}
 
-		[[nodiscard]] bool operator==(const this_type& rhs) const
+		[[nodiscard]] constexpr bool operator==(const this_type& rhs) const
 		{
-			return std::equal(begin(), end(), rhs.begin());
+			for (size_t i = 0; i < SIZE; i++)
+				if (at(i) != rhs.at(i))
+					return false;
+
+			return true;
 		}
 
-		[[nodiscard]] bool operator!=(const this_type& rhs) const
+		[[nodiscard]] constexpr bool operator!=(const this_type& rhs) const
 		{
 			return !(*this == rhs);
 		}
 
-		[[nodiscard]] bool operator<(const this_type& rhs) const
+		constexpr this_type& operator=(const this_type& rhs)
 		{
-			return std::lexicographical_compare(begin(), end(), rhs.begin(), rhs.end());
-		}
+			for (size_t i = 0; i < SIZE; i++)
+				at(i) = rhs.at(i);
 
-		[[nodiscard]] bool operator<=(const this_type& rhs) const
-		{
-			return !(rhs < *this);
-		}
-
-		[[nodiscard]] bool operator>(const this_type& rhs) const
-		{
-			return rhs < *this;
-		}
-
-		[[nodiscard]] bool operator>=(const this_type& rhs) const
-		{
-			return !(rhs > * this);
-		}
-
-		this_type& operator=(const this_type& rhs)
-		{
-			std::copy(rhs.begin(), rhs.end(), begin());
 			return *this;
 		}
 
-		[[nodiscard]] this_type operator+() const
+		[[nodiscard]] constexpr this_type operator+() const
 		{
 			return *this;
 		}
 
-		[[nodiscard]] this_type operator-() const
+		[[nodiscard]] constexpr this_type operator-() const
 		{
 			return *this * -1;
 		}
 
-		[[nodiscard]] this_type operator+(const this_type& rhs) const
+		[[nodiscard]] constexpr this_type operator+(const this_type& rhs) const
 		{
 			this_type m = *this;
 
-			for (size_type i = 0; i < size(); i++)
-				m[i] += rhs[i];
+			for (size_t i = 0; i < SIZE; i++)
+				m.at(i) += rhs.at(i);
 
 			return m;
 		}
 
-		this_type& operator+=(const this_type& rhs)
+		constexpr this_type& operator+=(const this_type& rhs)
 		{
 			*this = *this + rhs;
 			return *this;
 		}
 
-		[[nodiscard]] this_type operator-(const this_type& rhs) const
+		[[nodiscard]] constexpr this_type operator-(const this_type& rhs) const
 		{
 			return *this + -rhs;
 		}
 
-		this_type& operator-=(const this_type& rhs)
+		constexpr this_type& operator-=(const this_type& rhs)
 		{
 			*this = *this - rhs;
 			return *this;
 		}
 
-		[[nodiscard]] this_type operator*(const_reference rhs) const
+		[[nodiscard]] constexpr this_type operator*(const_reference rhs) const
 		{
 			this_type m = *this;
 
-			for (size_type i = 0; i < size(); i++)
-				m[i] *= rhs;
+			for (size_t i = 0; i < SIZE; i++)
+				m.at(i) *= rhs;
 
 			return m;
 		}
 
-		this_type& operator*=(const_reference rhs)
+		constexpr this_type& operator*=(const_reference rhs)
 		{
 			*this = *this * rhs;
 			return *this;
 		}
 
-		[[nodiscard]] matrix<value_type, R, R> operator*(const matrix<value_type, C, R>& rhs) const
+		[[nodiscard]] constexpr matrix<value_type, ROWS, ROWS> operator*(const matrix<value_type, COLS, ROWS>& rhs) const
 		{
-			value_type m[R][R] = { 0 };
+			matrix<value_type, ROWS, ROWS> m;
 
-			for (size_type i = 0; i < R; i++)
-				for (size_type j = 0; j < R; j++)
-					for (size_type k = 0; k < C; k++)
-						m[i][j] += m_mat[i][k] * rhs.m_mat[k][j];
-
-			return matrix<value_type, R, R>(m);
-		}
-
-		matrix<value_type, R, R>& operator*=(const matrix<value_type, C, R>& rhs)
-		{
-			*this = *this * rhs;
-			return *this;
-		}
-
-		[[nodiscard]] this_type operator/(const_reference rhs) const
-		{
-			this_type m = *this;
-
-			for (size_type i = 0; i < size(); i++)
-				m[i] /= rhs;
+			for (size_t i = 0; i < ROWS; i++)
+				for (size_t j = 0; j < ROWS; j++)
+					for (size_t k = 0; k < COLS; k++)
+						m.at(i, j) += at(i, k) * rhs.at(k, j);
 
 			return m;
 		}
 
-		this_type& operator/=(const_reference rhs)
+		[[nodiscard]] constexpr this_type operator/(const_reference rhs) const
+		{
+			this_type m = *this;
+
+			for (size_t i = 0; i < SIZE; i++)
+				m.at(i) /= rhs;
+
+			return m;
+		}
+
+		constexpr this_type& operator/=(const_reference rhs)
 		{
 			*this = *this / rhs;
 			return *this;
@@ -605,21 +529,21 @@ namespace rb::math
 		{
 			os << "[";
 
-			for (size_type i = 0; i < m.rows(); i++)
+			for (size_t i = 0; i < ROWS; i++)
 			{
 				os << "[";
 
-				for (size_type j = 0; j < m.columns(); j++)
+				for (size_t j = 0; j < COLS; j++)
 				{
 					os << m.m_mat[i][j];
 
-					if (j + 1 < m.columns())
+					if (j + 1 < COLS)
 						os << ",";
 				}
 
 				os << "]";
 
-				if (i + 1 < m.rows())
+				if (i + 1 < ROWS)
 					os << ",";
 			}
 
@@ -628,8 +552,8 @@ namespace rb::math
 			return os;
 		}
 
-	private: // Variables
-		value_type m_mat[R][C];
+	private:
+		value_type m_mat[ROWS][COLS];
 	};
 
 	template<class T>
