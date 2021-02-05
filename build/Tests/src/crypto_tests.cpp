@@ -8,6 +8,7 @@
 #include "crypto/hmac.h"
 #include "crypto/bases.h"
 #include "crypto/aes.h"
+#include "crypto/ecdsa.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -363,6 +364,22 @@ namespace rb::tests
 			cipher.write(data, 16);
 
 			Assert::IsTrue(cipher.hex_decrypt(key, 32) == "00112233445566778899aabbccddeeff");
+		}
+
+		TEST_METHOD(ECDSA_SECP256K1)
+		{
+			ECDSA_secp256k1::key_pair_type key = ECDSA_secp256k1::generate_key_pair();
+
+			uint8_t data[16] = {
+				0x69, 0xc4, 0xe0, 0xd8,
+				0x6a, 0x7b, 0x04, 0x30,
+				0xd8, 0xcd, 0xb7, 0x80,
+				0x70, 0xb4, 0xc5, 0x5a
+			};
+
+			ECDSA_secp256k1::signature_type sig = ECDSA_secp256k1::sign(std::get<0>(key), data, 16);
+
+			Assert::IsTrue(ECDSA_secp256k1::verify(std::get<1>(key), sig, data, 16));
 		}
 
 	};
