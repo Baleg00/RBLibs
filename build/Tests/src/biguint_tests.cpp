@@ -209,5 +209,192 @@ namespace rb::tests
 			Assert::IsTrue(uint128::MAX() == "ffffffffffffffffffffffffffffffff"_u128);
 		}
 
+		TEST_METHOD(ADD_BIG)
+		{
+			biguint v = "67a7389d60ef539e65bed3893a34e08e"_biguint + "360eb0c3d1d8fba1ad0c732103394c66"_biguint;
+			biguint r = "9db5e96132c84f4012cb46aa3d6e2cf4"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(SUB_BIG)
+		{
+			biguint v = "968879be89ebc6c8dd2bced6b0070dce"_biguint - "2ae8d0de2051b2a24b6171455d88d8be"_biguint;
+			biguint r = "6b9fa8e0699a142691ca5d91527e3510"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(MUL_BIG)
+		{
+			biguint v = "3548f387df1a1925"_biguint * "3078efc52b86a075"_biguint;
+			biguint r = "a16d9c3c7140048040b46e4a7029de9"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(DIV_BIG)
+		{
+			biguint v = "b1dec9787c38aaf1f9738021bdbca89c"_biguint / "4d049d247ccf9b29e9aa33b200e37c37"_biguint;
+			biguint r = "02"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(REM_BIG)
+		{
+			biguint v = "88e0649a92bb1aadbf485bad2637a75e"_biguint % "15859e93105512c3a27e07c499bd723d"_biguint;
+			biguint r = "7bead2830bcaa17f0542d118bc6f9f0"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(AND_BIG)
+		{
+			biguint v = "23c857d06582543dab9c450ba9c5a5b1"_biguint & "16267c48064d57baa758cecc58754863"_biguint;
+			biguint r = "200544004005438a318440808450021"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(OR_BIG)
+		{
+			biguint v = "fdf573c6bc2365ae3df2cf210ea9348a"_biguint | "e8fb0cd1235e3e90ccd642a12098508e"_biguint;
+			biguint r = "fdff7fd7bf7f7fbefdf6cfa12eb9748e"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(XOR_BIG)
+		{
+			biguint v = "259a93dcfba2f0dc9e45540f406707df"_biguint ^ "2359a6461ae95b41e6ebeb916e7cf734"_biguint;
+			biguint r = "6c3359ae14bab9d78aebf9e2e1bf0eb"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(LSHIFT_BIG)
+		{
+			biguint v = "15f758ebd9b0796c64895dd46b479e97"_biguint << 40;
+			biguint r = "15f758ebd9b0796c64895dd46b479e970000000000"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(RSHIFT_BIG)
+		{
+			biguint v = "6c39f64c8f6b1028fedc77cd584b49c9"_biguint >> 33;
+			biguint r = "361cfb2647b588147f6e3be6"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(NOT_BIG)
+		{
+			biguint v = ~"9e7039ad4f0c8a2e47a8c7783a577575"_biguint;
+			biguint r = "618fc652b0f375d1b8573887c5a88a8a"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(EQUAL_BIG)
+		{
+			biguint v0 = "ccd4755e518c8719aad33a4d28dad995"_biguint;
+			biguint v1 = "e8823d2da5478f417a89636bbb3213b5"_biguint;
+			Assert::IsTrue(v0 == v0);
+			Assert::IsFalse(v0 == v1);
+		}
+
+		TEST_METHOD(NOT_EQUAL_BIG)
+		{
+			biguint v0 = "77662b707b5595f0bf7a9f94bea98102"_biguint;
+			biguint v1 = "728f6146a5f928f6573536c3bfad9e7d"_biguint;
+			Assert::IsFalse(v0 != v0);
+			Assert::IsTrue(v0 != v1);
+		}
+
+		TEST_METHOD(LESS_BIG)
+		{
+			biguint v0 = "d4087a040e35fbf8a67235f140cc8526"_biguint;
+			biguint v1 = "e08a9f770f33f45ebe236ae7aad0c41c"_biguint;
+			Assert::IsTrue(v0 < v1);
+		}
+
+		TEST_METHOD(LESS_EQ_BIG)
+		{
+			biguint v0 = "6744db9bbb146b49212a0b4d2d935566"_biguint;
+			biguint v1 = "84a4c6dbcc0afa5a59f73cfa52970715"_biguint;
+			Assert::IsTrue(v0 <= v0);
+			Assert::IsTrue(v0 <= v1);
+		}
+
+		TEST_METHOD(GREATER_BIG)
+		{
+			biguint v0 = "f2328599344565660bc5073119758e67"_biguint;
+			biguint v1 = "39806edab60194a5115360c9dda4d9e7"_biguint;
+			Assert::IsTrue(v0 > v1);
+		}
+
+		TEST_METHOD(GREATER_EQ_BIG)
+		{
+			biguint v0 = "96075536c5e7b74d65bfb6bf3cb33d72"_biguint;
+			biguint v1 = "17cc686996c972c024855cc213849b2a"_biguint;
+			Assert::IsTrue(v0 >= v0);
+			Assert::IsTrue(v0 >= v1);
+		}
+
+		TEST_METHOD(ZERO_BIG)
+		{
+			biguint v0 = "68cfccbbef8e9ad7a8a15a1eb3ae8a0f"_biguint;
+			Assert::IsFalse(v0.is_zero());
+
+			biguint v1 = "0"_biguint;
+			Assert::IsTrue(v1.is_zero());
+		}
+
+		TEST_METHOD(SQRT_BIG)
+		{
+			biguint v = "254a3f6bd8a408eda2332f0b2030af54"_biguint.sqrt();
+			biguint r = "61b474697b361ca6"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(POW_BIG)
+		{
+			biguint v = "ea0336de"_biguint.pow("04"_biguint);
+			biguint r = "b2bf04fcdfee4f84107c7bda685b8410"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(LOG_BIG)
+		{
+			biguint v = "0b12842e1adf664fbbdd24bf638ae80e"_biguint.log("64"_biguint);
+			biguint r = "12"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(LOG2_BIG)
+		{
+			biguint v = "2ac68abd5d4fbd4dcf8bd324c75c25cd"_biguint.log2();
+			biguint r = "7d"_biguint;
+			Assert::IsTrue(v == r);
+		}
+
+		TEST_METHOD(GCD_BIG)
+		{
+			biguint v0 = "7c88ae7dacceb8adebe7c98eeabb7b84"_biguint;
+			biguint v1 = "3ff232dcdd2d081cffccd25eb13ac9b2"_biguint;
+			biguint r = "02"_biguint;
+			Assert::IsTrue(v0.gcd(v1) == r);
+		}
+
+		TEST_METHOD(LCM_BIG)
+		{
+			biguint v0 = "3b54bd67f818bbf4"_biguint;
+			biguint v1 = "04a32b51f17de60a"_biguint;
+			biguint r = "8991fa3955d9a079c7d81731fc47c4"_biguint;
+			Assert::IsTrue(v0.lcm(v1) == r);
+		}
+
+		TEST_METHOD(CONST_ZERO_BIG)
+		{
+			Assert::IsTrue(biguint::ZERO() == "0"_biguint);
+			Assert::IsTrue(biguint::ZERO().is_zero());
+		}
+
+		TEST_METHOD(CONST_ONE_BIG)
+		{
+			Assert::IsTrue(biguint::ONE() == "1"_biguint);
+		}
+
 	};
 }

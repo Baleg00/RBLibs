@@ -5,17 +5,21 @@
 
 namespace rb::math
 {
-	using int128 = bigint<128>;
-	using int256 = bigint<256>;
-	using int512 = bigint<512>;
-	using int1024 = bigint<1024>;
-	using int2048 = bigint<2048>;
+	using int128 = bigint_impl<128>;
+	using int256 = bigint_impl<256>;
+	using int512 = bigint_impl<512>;
+	using int1024 = bigint_impl<1024>;
+	using int2048 = bigint_impl<2048>;
 
-	using uint128 = biguint<128>;
-	using uint256 = biguint<256>;
-	using uint512 = biguint<512>;
-	using uint1024 = biguint<1024>;
-	using uint2048 = biguint<2048>;
+	using bigint = bigint_impl<0>;
+
+	using uint128 = biguint_impl<128>;
+	using uint256 = biguint_impl<256>;
+	using uint512 = biguint_impl<512>;
+	using uint1024 = biguint_impl<1024>;
+	using uint2048 = biguint_impl<2048>;
+
+	using biguint = biguint_impl<0>;
 
 	inline namespace literals
 	{
@@ -44,6 +48,11 @@ namespace rb::math
 			return int2048(std::string_view(str, size));
 		}
 
+		[[nodiscard]] inline bigint operator""_bigint(const char* str, size_t size)
+		{
+			return bigint(std::string_view(str, size));
+		}
+
 		[[nodiscard]] constexpr uint128 operator""_u128(const char* str, size_t size)
 		{
 			return uint128(std::string_view(str, size));
@@ -67,6 +76,11 @@ namespace rb::math
 		[[nodiscard]] constexpr uint2048 operator""_u2048(const char* str, size_t size)
 		{
 			return uint2048(std::string_view(str, size));
+		}
+
+		[[nodiscard]] inline biguint operator""_biguint(const char* str, size_t size)
+		{
+			return biguint(std::string_view(str, size));
 		}
 	}
 }
