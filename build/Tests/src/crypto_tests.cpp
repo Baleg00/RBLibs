@@ -366,6 +366,70 @@ namespace rb::tests
 			Assert::IsTrue(cipher.hex_decrypt(key, 32) == "00112233445566778899aabbccddeeff");
 		}
 
+		TEST_METHOD(ECDSA_SECP192K1)
+		{
+			ECDSA_secp192k1::key_pair_type key = ECDSA_secp192k1::generate_key_pair();
+
+			uint8_t data[16] = {
+				0x69, 0xc4, 0xe0, 0xd8,
+				0x6a, 0x7b, 0x04, 0x30,
+				0xd8, 0xcd, 0xb7, 0x80,
+				0x70, 0xb4, 0xc5, 0x5a
+			};
+
+			ECDSA_secp192k1::signature_type sig = ECDSA_secp192k1::sign(std::get<0>(key), data, 16);
+
+			Assert::IsTrue(ECDSA_secp192k1::verify(std::get<1>(key), sig, data, 16));
+		}
+
+		TEST_METHOD(ECDSA_SECP192R1)
+		{
+			ECDSA_secp192r1::key_pair_type key = ECDSA_secp192r1::generate_key_pair();
+
+			uint8_t data[16] = {
+				0x69, 0xc4, 0xe0, 0xd8,
+				0x6a, 0x7b, 0x04, 0x30,
+				0xd8, 0xcd, 0xb7, 0x80,
+				0x70, 0xb4, 0xc5, 0x5a
+			};
+
+			ECDSA_secp192r1::signature_type sig = ECDSA_secp192r1::sign(std::get<0>(key), data, 16);
+
+			Assert::IsTrue(ECDSA_secp192r1::verify(std::get<1>(key), sig, data, 16));
+		}
+
+		TEST_METHOD(ECDSA_SECP224K1)
+		{
+			ECDSA_secp224k1::key_pair_type key = ECDSA_secp224k1::generate_key_pair();
+
+			uint8_t data[16] = {
+				0x69, 0xc4, 0xe0, 0xd8,
+				0x6a, 0x7b, 0x04, 0x30,
+				0xd8, 0xcd, 0xb7, 0x80,
+				0x70, 0xb4, 0xc5, 0x5a
+			};
+
+			ECDSA_secp224k1::signature_type sig = ECDSA_secp224k1::sign(std::get<0>(key), data, 16);
+
+			Assert::IsTrue(ECDSA_secp224k1::verify(std::get<1>(key), sig, data, 16));
+		}
+
+		TEST_METHOD(ECDSA_SECP224R1)
+		{
+			ECDSA_secp224r1::key_pair_type key = ECDSA_secp224r1::generate_key_pair();
+
+			uint8_t data[16] = {
+				0x69, 0xc4, 0xe0, 0xd8,
+				0x6a, 0x7b, 0x04, 0x30,
+				0xd8, 0xcd, 0xb7, 0x80,
+				0x70, 0xb4, 0xc5, 0x5a
+			};
+
+			ECDSA_secp224r1::signature_type sig = ECDSA_secp224r1::sign(std::get<0>(key), data, 16);
+
+			Assert::IsTrue(ECDSA_secp224r1::verify(std::get<1>(key), sig, data, 16));
+		}
+
 		TEST_METHOD(ECDSA_SECP256K1)
 		{
 			ECDSA_secp256k1::key_pair_type key = ECDSA_secp256k1::generate_key_pair();
@@ -380,6 +444,54 @@ namespace rb::tests
 			ECDSA_secp256k1::signature_type sig = ECDSA_secp256k1::sign(std::get<0>(key), data, 16);
 
 			Assert::IsTrue(ECDSA_secp256k1::verify(std::get<1>(key), sig, data, 16));
+		}
+
+		TEST_METHOD(ECDSA_SECP256R1)
+		{
+			ECDSA_secp256r1::key_pair_type key = ECDSA_secp256r1::generate_key_pair();
+
+			uint8_t data[16] = {
+				0x69, 0xc4, 0xe0, 0xd8,
+				0x6a, 0x7b, 0x04, 0x30,
+				0xd8, 0xcd, 0xb7, 0x80,
+				0x70, 0xb4, 0xc5, 0x5a
+			};
+
+			ECDSA_secp256r1::signature_type sig = ECDSA_secp256r1::sign(std::get<0>(key), data, 16);
+
+			Assert::IsTrue(ECDSA_secp256r1::verify(std::get<1>(key), sig, data, 16));
+		}
+
+		TEST_METHOD(ECDSA_SECP384R1)
+		{
+			ECDSA_secp384r1::key_pair_type key = ECDSA_secp384r1::generate_key_pair();
+
+			uint8_t data[16] = {
+				0x69, 0xc4, 0xe0, 0xd8,
+				0x6a, 0x7b, 0x04, 0x30,
+				0xd8, 0xcd, 0xb7, 0x80,
+				0x70, 0xb4, 0xc5, 0x5a
+			};
+
+			ECDSA_secp384r1::signature_type sig = ECDSA_secp384r1::sign(std::get<0>(key), data, 16);
+
+			Assert::IsTrue(ECDSA_secp384r1::verify(std::get<1>(key), sig, data, 16));
+		}
+
+		TEST_METHOD(ECDSA_SECP521R1)
+		{
+			ECDSA_secp521r1::key_pair_type key = ECDSA_secp521r1::generate_key_pair();
+
+			uint8_t data[16] = {
+				0x69, 0xc4, 0xe0, 0xd8,
+				0x6a, 0x7b, 0x04, 0x30,
+				0xd8, 0xcd, 0xb7, 0x80,
+				0x70, 0xb4, 0xc5, 0x5a
+			};
+
+			ECDSA_secp521r1::signature_type sig = ECDSA_secp521r1::sign(std::get<0>(key), data, 16);
+
+			Assert::IsTrue(ECDSA_secp521r1::verify(std::get<1>(key), sig, data, 16));
 		}
 
 	};
